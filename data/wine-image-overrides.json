@@ -1,0 +1,11 @@
+{
+  "_description": "Manual wine image overrides. Add wines here when Vivino scraping fails.",
+  "_instructions": [
+    "To add a wine image override:",
+    "1. Find the wine bottle image URL from a retailer, winery site, or Vivino",
+    "2. Add an entry below with name, vineyard, and imageUrl",
+    "3. Optionally include vintage for version-specific images",
+    "4. The image URL must be publicly accessible (no login required)"
+  ],
+  "overrides": []
+}

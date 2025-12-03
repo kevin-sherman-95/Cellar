@@ -1,0 +1,406 @@
+[
+  {
+    "name": "Concannon Petite Sirah Reserve",
+    "vineyard": "Concannon Vineyard",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Petite Sirah",
+    "vintage": 2020,
+    "description": "Deep, inky purple with aromas of blackberry, plum, and hints of chocolate. Full-bodied with firm tannins.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Wente Morning Fog Chardonnay",
+    "vineyard": "Wente Family Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Chardonnay",
+    "vintage": 2022,
+    "description": "Bright citrus and tropical fruit notes with subtle oak influence. Crisp and refreshing.",
+    "alcoholContent": 13.5
+  },
+  {
+    "name": "Wente Southern Hills Cabernet Sauvignon",
+    "vineyard": "Wente Family Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2021,
+    "description": "Rich black cherry and cassis flavors with hints of vanilla and spice from French oak aging.",
+    "alcoholContent": 14.2
+  },
+  {
+    "name": "Steven Kent Lineage",
+    "vineyard": "The Steven Kent Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Bordeaux Blend",
+    "vintage": 2019,
+    "description": "Estate-grown Bordeaux blend showcasing the best of Livermore Valley terroir.",
+    "alcoholContent": 14.8
+  },
+  {
+    "name": "Steven Kent Small Lot Cabernet Sauvignon",
+    "vineyard": "The Steven Kent Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2020,
+    "description": "Intensely concentrated with dark fruit, cedar, and graphite notes.",
+    "alcoholContent": 15.0
+  },
+  {
+    "name": "Murrieta's Well The Spur",
+    "vineyard": "Murrieta's Well",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Red Blend",
+    "vintage": 2020,
+    "description": "Bold red blend with notes of ripe plum, dark cherry, and subtle spice.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Murrieta's Well The Whip",
+    "vineyard": "Murrieta's Well",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "White Blend",
+    "vintage": 2022,
+    "description": "Aromatic white blend with notes of citrus, stone fruit, and subtle floral hints.",
+    "alcoholContent": 13.5
+  },
+  {
+    "name": "Darcie Kent Madden Ranch Chardonnay",
+    "vineyard": "Darcie Kent Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Chardonnay",
+    "vintage": 2021,
+    "description": "Single-vineyard Chardonnay with bright apple, pear, and subtle butter notes.",
+    "alcoholContent": 14.1
+  },
+  {
+    "name": "Darcie Kent Demayo Cabernet Sauvignon",
+    "vineyard": "Darcie Kent Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2019,
+    "description": "Estate Cabernet with layers of blackcurrant, mocha, and fine-grained tannins.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "McGrail Reserve Cabernet Sauvignon",
+    "vineyard": "McGrail Vineyards and Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2019,
+    "description": "Flagship wine with concentrated flavors of black cherry, cassis, and cedar.",
+    "alcoholContent": 14.8
+  },
+  {
+    "name": "McGrail Kylie Ryan Chardonnay",
+    "vineyard": "McGrail Vineyards and Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Chardonnay",
+    "vintage": 2022,
+    "description": "Elegant Chardonnay with notes of green apple, lemon curd, and toasted oak.",
+    "alcoholContent": 14.0
+  },
+  {
+    "name": "Fenestra True Red",
+    "vineyard": "Fenestra Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Red Blend",
+    "vintage": 2020,
+    "description": "Classic Livermore red blend with balanced fruit and smooth finish.",
+    "alcoholContent": 13.9
+  },
+  {
+    "name": "Fenestra Semillon",
+    "vineyard": "Fenestra Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Semillon",
+    "vintage": 2021,
+    "description": "Rare varietal for California with honeyed notes and crisp acidity.",
+    "alcoholContent": 13.2
+  },
+  {
+    "name": "Las Positas Estate Reserve Tempranillo",
+    "vineyard": "Las Positas Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Tempranillo",
+    "vintage": 2020,
+    "description": "Spanish-style Tempranillo with notes of cherry, leather, and vanilla.",
+    "alcoholContent": 14.2
+  },
+  {
+    "name": "Las Positas Petite Sirah",
+    "vineyard": "Las Positas Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Petite Sirah",
+    "vintage": 2019,
+    "description": "Dense and powerful with dark fruit, black pepper, and firm tannins.",
+    "alcoholContent": 14.8
+  },
+  {
+    "name": "Garré Vineyard Estate Merlot",
+    "vineyard": "Garré Vineyard Winery & Cafe",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Merlot",
+    "vintage": 2020,
+    "description": "Soft and velvety with plum, cherry, and hints of chocolate.",
+    "alcoholContent": 13.8
+  },
+  {
+    "name": "Garré Vineyard Sangiovese",
+    "vineyard": "Garré Vineyard Winery & Cafe",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Sangiovese",
+    "vintage": 2021,
+    "description": "Italian-style wine with bright cherry, herbs, and earthy notes.",
+    "alcoholContent": 13.5
+  },
+  {
+    "name": "Longevity Zinfandel",
+    "vineyard": "Longevity Wines",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Zinfandel",
+    "vintage": 2020,
+    "description": "Bold and jammy with ripe blackberry, pepper, and spice.",
+    "alcoholContent": 15.2
+  },
+  {
+    "name": "Longevity Cabernet Franc",
+    "vineyard": "Longevity Wines",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Franc",
+    "vintage": 2021,
+    "description": "Elegant with notes of red currant, violet, and green pepper.",
+    "alcoholContent": 14.0
+  },
+  {
+    "name": "Cuda Ridge Cabernet Sauvignon",
+    "vineyard": "Cuda Ridge Wines",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2019,
+    "description": "Bordeaux-style Cabernet with structure and aging potential.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Cuda Ridge Malbec",
+    "vineyard": "Cuda Ridge Wines",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Malbec",
+    "vintage": 2020,
+    "description": "Deep purple with plum, violet, and cocoa notes.",
+    "alcoholContent": 14.3
+  },
+  {
+    "name": "Page Mill Sauvignon Blanc",
+    "vineyard": "Page Mill Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Sauvignon Blanc",
+    "vintage": 2022,
+    "description": "Bright and zesty with grapefruit, lime, and herbal notes.",
+    "alcoholContent": 13.5
+  },
+  {
+    "name": "Page Mill Pinot Noir",
+    "vineyard": "Page Mill Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Pinot Noir",
+    "vintage": 2021,
+    "description": "Delicate red with cherry, raspberry, and subtle earthiness.",
+    "alcoholContent": 13.8
+  },
+  {
+    "name": "Retzlaff Organic Merlot",
+    "vineyard": "Retzlaff Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Merlot",
+    "vintage": 2020,
+    "description": "Certified organic Merlot with pure fruit expression and silky tannins.",
+    "alcoholContent": 13.9
+  },
+  {
+    "name": "Retzlaff Estate Cabernet Sauvignon",
+    "vineyard": "Retzlaff Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2019,
+    "description": "Organic estate Cabernet with dark fruit and savory herbs.",
+    "alcoholContent": 14.2
+  },
+  {
+    "name": "Charles R. Vineyards Petite Sirah",
+    "vineyard": "Charles R. Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Petite Sirah",
+    "vintage": 2019,
+    "description": "Big and bold with blackberry, blueberry, and black pepper.",
+    "alcoholContent": 14.6
+  },
+  {
+    "name": "Occasio Primitivo",
+    "vineyard": "Occasio Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Primitivo",
+    "vintage": 2020,
+    "description": "Italian-style red with ripe cherry, spice, and smooth finish.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Rubino Estates Dolcetto",
+    "vineyard": "Rubino Estates Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Dolcetto",
+    "vintage": 2021,
+    "description": "Italian varietal with soft tannins and notes of almond and dark cherry.",
+    "alcoholContent": 13.5
+  },
+  {
+    "name": "Ruby Hill Sangiovese",
+    "vineyard": "Ruby Hill Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Sangiovese",
+    "vintage": 2020,
+    "description": "Tuscan-inspired wine with bright acidity and cherry notes.",
+    "alcoholContent": 13.8
+  },
+  {
+    "name": "Mitchell Katz Falling Star Meritage",
+    "vineyard": "Mitchell Katz Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Meritage",
+    "vintage": 2019,
+    "description": "Bordeaux-style blend from hand-selected vineyard lots.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Bent Creek Estate Viognier",
+    "vineyard": "Bent Creek Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Viognier",
+    "vintage": 2022,
+    "description": "Aromatic white with peach, apricot, and floral notes.",
+    "alcoholContent": 14.0
+  },
+  {
+    "name": "3 Steves Winery Grenache",
+    "vineyard": "3 Steves Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Grenache",
+    "vintage": 2021,
+    "description": "Rhône-style Grenache with raspberry, strawberry, and white pepper.",
+    "alcoholContent": 14.2
+  },
+  {
+    "name": "Del Valle Estate Syrah",
+    "vineyard": "Del Valle Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Syrah",
+    "vintage": 2020,
+    "description": "Full-bodied with notes of blackberry, smoked meat, and black pepper.",
+    "alcoholContent": 14.8
+  },
+  {
+    "name": "Dante Robere Vineyards Barbera",
+    "vineyard": "Dante Robere Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Barbera",
+    "vintage": 2021,
+    "description": "Italian varietal with bright acidity and cherry-plum flavors.",
+    "alcoholContent": 14.0
+  },
+  {
+    "name": "Wood Family Vineyards Cabernet Sauvignon",
+    "vineyard": "Wood Family Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2020,
+    "description": "Estate-grown Cabernet with black fruit, cedar, and tobacco notes.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Wood Family Vineyards Chardonnay",
+    "vineyard": "Wood Family Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Chardonnay",
+    "vintage": 2022,
+    "description": "Barrel-fermented with notes of apple, pear, and vanilla.",
+    "alcoholContent": 14.1
+  },
+  {
+    "name": "Rosa Fierro Rosé",
+    "vineyard": "Rosa Fierro Cellars",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Rosé",
+    "vintage": 2023,
+    "description": "Crisp and refreshing with strawberry, watermelon, and citrus notes.",
+    "alcoholContent": 12.5
+  },
+  {
+    "name": "Nella Terra Sangiovese",
+    "vineyard": "Nella Terra Cellars",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Sangiovese",
+    "vintage": 2020,
+    "description": "Super-Tuscan style with red fruit, dried herbs, and firm structure.",
+    "alcoholContent": 14.2
+  },
+  {
+    "name": "BoaVentura Portuguese Red Blend",
+    "vineyard": "BoaVentura de Caires Winery",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Red Blend",
+    "vintage": 2020,
+    "description": "Portuguese-style blend with dark fruit, earth, and spice.",
+    "alcoholContent": 14.0
+  },
+  {
+    "name": "Bodegas Aguirre Tempranillo",
+    "vineyard": "Bodegas Aguirre",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Tempranillo",
+    "vintage": 2019,
+    "description": "Spanish-inspired with cherry, leather, and oak notes.",
+    "alcoholContent": 14.3
+  }
+]
+
+
+
+

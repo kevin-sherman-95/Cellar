@@ -1,0 +1,385 @@
+import { prisma } from './db'
+import { WineFormData, ReviewFormData, UserProfileData, WineFilters } from './types'
+import { findOrCreateWine } from './wine-actions'
+
+// UserWineStatus values (moved out of server actions file)
+export const USER_WINE_STATUS = {
+  WANT_TO_TRY: 'WANT_TO_TRY',
+  CURRENTLY_TASTING: 'CURRENTLY_TASTING', 
+  TRIED: 'TRIED'
+} as const
+
+export type UserWineStatus = typeof USER_WINE_STATUS[keyof typeof USER_WINE_STATUS]
+
+// Re-export server actions
+export { getWines, getWineById, createWine, getWinesByVineyard, getVineyardStats, getFeaturedWines, getHighestRatedWines, getPersonalizedRecommendations } from './wine-actions'
+export { findOrCreateWine }
+
+// Get all unique varietals from the database
+export async function getAllVarietals() {
+  const wines = await prisma.wine.findMany({
+    select: {
+      varietal: true
+    },
+    distinct: ['varietal']
+  })
+  
+  return wines.map(w => w.varietal).filter(Boolean).sort()
+}
+
+// User wine collection actions
+export async function addWineToCollection(userId: string, wineId: string, status: string) {
+  return await prisma.userWine.upsert({
+    where: {
+      userId_wineId: {
+        userId,
+        wineId
+      }
+    },
+    update: { status },
+    create: {
+      userId,
+      wineId,
+      status
+    }
+  })
+}
+
+export async function removeWineFromCollection(userId: string, wineId: string) {
+  return await prisma.userWine.delete({
+    where: {
+      userId_wineId: {
+        userId,
+        wineId
+      }
+    }
+  })
+}
+
+// Cellar management actions
+export async function addWineToCellar(userId: string, wineId: string, quantity: number = 1) {
+  return await prisma.userWine.upsert({
+    where: {
+      userId_wineId: {
+        userId,
+        wineId
+      }
+    },
+    update: {
+      inCellar: true,
+      quantity: quantity
+    },
+    create: {
+      userId,
+      wineId,
+      status: 'TRIED',
+      inCellar: true,
+      quantity: quantity
+    }
+  })
+}
+
+export async function removeWineFromCellar(userId: string, wineId: string) {
+  return await prisma.userWine.update({
+    where: {
+      userId_wineId: {
+        userId,
+        wineId
+      }
+    },
+    data: {
+      inCellar: false,
+      quantity: 0
+    }
+  })
+}
+
+export async function updateCellarQuantity(userId: string, wineId: string, quantity: number) {
+  return await prisma.userWine.update({
+    where: {
+      userId_wineId: {
+        userId,
+        wineId
+      }
+    },
+    data: {
+      quantity: quantity,
+      inCellar: quantity > 0
+    }
+  })
+}
+
+export async function updateUserWineNotes(userId: string, wineId: string, notes: string | null) {
+  return await prisma.userWine.update({
+    where: {
+      userId_wineId: {
+        userId,
+        wineId
+      }
+    },
+    data: {
+      notes: notes || null
+    }
+  })
+}
+
+export async function getUserWines(userId: string, status?: string) {
+  const where: any = { userId }
+  if (status) {
+    where.status = status
+  }
+
+  return await prisma.userWine.findMany({
+    where,
+    include: {
+      wine: {
+        include: {
+          _count: {
+            select: { reviews: true }
+          },
+          reviews: {
+            select: { rating: true }
+          }
+        }
+      }
+    },
+    orderBy: { addedAt: 'desc' }
+  })
+}
+
+// Helper function to ensure Pine Ridge wine is in user's tried collection
+async function ensurePineRidgeInTried(userId: string) {
+  const pineRidgeWineData = {
+    name: 'Black Diamond Cabernet Sauvignon',
+    vineyard: 'Pine Ridge Vineyards',
+    region: 'Red Mountain',
+    country: 'United States',
+    varietal: 'Cabernet Sauvignon',
+    vintage: 2022,
+    description: 'A fitting homage to our founder, Gary Andrus, Black Diamond is a wine with an adventurous, far-reaching spirit. With a lush nose of double black raspberry compote and Rainier cherry, this expert-level Cabernet Sauvignon is as exhilarating as fresh morning tracks, tempting you to try an aerial maneuver. Sourced from Red Mountain vines that cascade like a freestyle run, it delivers a rich sensory experience, blending juniper berry and powdered sugar with savory notes of chanterelles and Santa Rosa plums.',
+    alcoholContent: 15.0,
+  }
+
+  try {
+    // Find or create the wine
+    const wine = await findOrCreateWine(pineRidgeWineData)
+
+    // Check if user already has this wine in their tried collection
+    const existingUserWine = await prisma.userWine.findUnique({
+      where: {
+        userId_wineId: {
+          userId,
+          wineId: wine.id
+        }
+      }
+    })
+
+    if (!existingUserWine) {
+      // Add to cellar collection if not already present
+      await addWineToCollection(userId, wine.id, USER_WINE_STATUS.TRIED)
+    }
+  } catch (error) {
+    console.error('Error ensuring Pine Ridge wine in tried collection:', error)
+    // Don't throw error here to avoid breaking the main function
+  }
+}
+
+// New function specifically for getting user wines with their reviews
+export async function getUserWinesWithReviews(userId: string, status?: string) {
+  // First ensure Pine Ridge wine is in user's tried collection
+  await ensurePineRidgeInTried(userId)
+
+  const where: any = { userId }
+  if (status) {
+    where.status = status
+  }
+
+  const userWines = await prisma.userWine.findMany({
+    where,
+    include: {
+      wine: {
+        include: {
+          _count: {
+            select: { reviews: true, userWines: true }
+          },
+          reviews: {
+            select: { rating: true }
+          }
+        }
+      }
+    },
+    orderBy: { addedAt: 'desc' }
+  })
+
+  // For each user wine, get their review if it exists and calculate average rating
+  const userWinesWithReviews = await Promise.all(
+    userWines.map(async (userWine) => {
+      const userReview = await prisma.review.findUnique({
+        where: {
+          userId_wineId: {
+            userId,
+            wineId: userWine.wineId
+          }
+        }
+      })
+
+      // Calculate average rating for the wine
+      const averageRating = userWine.wine.reviews.length > 0 
+        ? userWine.wine.reviews.reduce((acc, review) => acc + review.rating, 0) / userWine.wine.reviews.length
+        : 0
+
+      return {
+        ...userWine,
+        userReview,
+        wine: {
+          ...userWine.wine,
+          averageRating,
+          _count: {
+            reviews: userWine.wine._count.reviews,
+            userWines: (userWine.wine._count as any).userWines ?? 0
+          }
+        }
+      }
+    })
+  )
+
+  return userWinesWithReviews
+}
+
+// Review actions
+export async function createReview(userId: string, wineId: string, data: ReviewFormData) {
+  return await prisma.review.upsert({
+    where: {
+      userId_wineId: {
+        userId,
+        wineId
+      }
+    },
+    update: {
+      rating: data.rating,
+      notes: data.notes,
+      photos: data.photos ? JSON.stringify(data.photos) : null
+    },
+    create: {
+      userId,
+      wineId,
+      rating: data.rating,
+      notes: data.notes,
+      photos: data.photos ? JSON.stringify(data.photos) : null
+    }
+  })
+}
+
+export async function getReviewsByUser(userId: string) {
+  return await prisma.review.findMany({
+    where: { userId },
+    include: {
+      wine: {
+        select: { id: true, name: true, vineyard: true, vintage: true }
+      },
+      _count: {
+        select: { likes: true, comments: true }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+}
+
+export async function getUserById(userId: string) {
+  return await prisma.user.findUnique({
+    where: { id: userId },
+    include: {
+      _count: {
+        select: {
+          reviews: true,
+          followers: true,
+          following: true,
+          userWines: true
+        }
+      }
+    }
+  })
+}
+
+// Social actions
+export async function followUser(followerId: string, followingId: string) {
+  return await prisma.follow.create({
+    data: { followerId, followingId }
+  })
+}
+
+export async function unfollowUser(followerId: string, followingId: string) {
+  return await prisma.follow.delete({
+    where: {
+      followerId_followingId: { followerId, followingId }
+    }
+  })
+}
+
+export async function toggleLike(userId: string, reviewId: string) {
+  const existing = await prisma.like.findUnique({
+    where: {
+      userId_reviewId: { userId, reviewId }
+    }
+  })
+
+  if (existing) {
+    await prisma.like.delete({
+      where: { id: existing.id }
+    })
+    return false
+  } else {
+    await prisma.like.create({
+      data: { userId, reviewId }
+    })
+    return true
+  }
+}
+
+// Server action to add Pine Ridge Black Diamond Cabernet Sauvignon to user's TRIED collection
+export async function addPineRidgeBlackDiamondToTried(userId: string) {
+  const wineData = {
+    name: 'Black Diamond Cabernet Sauvignon',
+    vineyard: 'Pine Ridge Vineyards',
+    region: 'Red Mountain',
+    country: 'United States',
+    varietal: 'Cabernet Sauvignon',
+    vintage: 2022,
+    description: 'A fitting homage to our founder, Gary Andrus, Black Diamond is a wine with an adventurous, far-reaching spirit. With a lush nose of double black raspberry compote and Rainier cherry, this expert-level Cabernet Sauvignon is as exhilarating as fresh morning tracks, tempting you to try an aerial maneuver. Sourced from Red Mountain vines that cascade like a freestyle run, it delivers a rich sensory experience, blending juniper berry and powdered sugar with savory notes of chanterelles and Santa Rosa plums.',
+    alcoholContent: 15.0,
+  }
+
+  try {
+    // Find or create the wine
+    const wine = await findOrCreateWine(wineData)
+
+    // Add wine to user's TRIED collection and cellar
+    await addWineToCollection(userId, wine.id, USER_WINE_STATUS.TRIED)
+    
+    // Also add to cellar for testing purposes
+    await prisma.userWine.upsert({
+      where: {
+        userId_wineId: {
+          userId,
+          wineId: wine.id
+        }
+      },
+      update: {
+        inCellar: true,
+        quantity: 1
+      },
+      create: {
+        userId,
+        wineId: wine.id,
+        status: USER_WINE_STATUS.TRIED,
+        inCellar: true,
+        quantity: 1
+      }
+    })
+
+    return { success: true, wineId: wine.id, wineName: wine.name }
+  } catch (error) {
+    console.error('Error adding Pine Ridge wine to tried collection:', error)
+    throw new Error('Failed to add wine to collection')
+  }
+}

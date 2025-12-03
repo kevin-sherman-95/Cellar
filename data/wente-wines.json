@@ -1,0 +1,406 @@
+[
+  {
+    "name": "2024 Riva Ranch Chardonnay",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Chardonnay",
+    "vintage": 2024,
+    "description": "This lush Chardonnay has plenty of character and is loaded with perfectly ripened apples, caramelized pineapple, and toasted brioche. The optimally ripened fruit is complemented by a tasteful measure of slightly creamy oak that hints at notes of crème brulée, along with a dollop of buttery richness that lasts well into the lengthy finish.",
+    "collection": "Riva Ranch"
+  },
+  {
+    "name": "2022 Livermore Valley Wetmore Cabernet Sauvignon",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2022,
+    "description": "Opens with aromas of black currant and cassis, complemented by a hint of 'Livermore Dust.' Creamy oak notes bring roasted cocoa nibs and hardwood complexity. On the palate, the wine offers layers of ripe black cherry and plum, leading to a long, satisfying finish with a firm tannin structure.",
+    "collection": "Wetmore"
+  },
+  {
+    "name": "2022 Cabernet Franc",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Franc",
+    "vintage": 2022,
+    "description": "Small lot wine harvested from carefully selected blocks that are estate-grown and sustainably farmed. With an east-west valley orientation, the site gets warm days and cool nights that are influenced by fog and breezes from the San Francisco Bay and Pacific Ocean. The grapes are handpicked and sorted at harvest time to ensure premium quality.",
+    "collection": "Small Lot"
+  },
+  {
+    "name": "2024 Riva Ranch Riesling",
+    "vineyard": "Wente Vineyards",
+    "region": "Arroyo Seco",
+    "country": "United States",
+    "varietal": "Riesling",
+    "vintage": 2024,
+    "description": "Bursts with lively fruit character and delicate floral aromatics. Fragrant notes of honeysuckle and orange blossom lead the bouquet, layered with juicy white peach, apricot, and a touch of honeyed richness. On the palate, crisp pear and apple introduce a subtle sweetness at the core, balanced beautifully by a refreshing lift of acidity.",
+    "collection": "Riva Ranch"
+  },
+  {
+    "name": "2024 Morning Fog Chardonnay",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Chardonnay",
+    "vintage": 2024,
+    "description": "The cornerstone of the Wente Chardonnay portfolio. Subtle oak nuances of sweet cream and vanilla integrate effortlessly with the bright character of crisp Gala apple, underpinned by hints of fresh-cut pear and lemon curd. Offers the hallmark weight and depth of classic Chardonnay, balanced by a refined acidity.",
+    "collection": "Morning Fog"
+  },
+  {
+    "name": "Brut Sparkling Wine",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Sparkling",
+    "vintage": null,
+    "description": "A classic Brut with aromas and flavors of pear and dried apricot with hints of crème brulée and apple. Nice complexity from the sur lies aging in the Méthode Champenoise, with a refreshing crispness and lingering vanilla cream aftertaste that pairs exceptionally well with food.",
+    "collection": "Sparkling"
+  },
+  {
+    "name": "2023 Aly's Pinot Noir",
+    "vineyard": "Wente Vineyards",
+    "region": "Arroyo Seco",
+    "country": "United States",
+    "varietal": "Pinot Noir",
+    "vintage": 2023,
+    "description": "Crafted to showcase the Arroyo Seco AVA terroir. The wine has expressive aromas of cherry, cranberry, rose petal, forest floor and cinnamon. Bright flavors of red cherry and vanilla are rounded out beautifully.",
+    "collection": "Aly's"
+  },
+  {
+    "name": "2024 Niki's Rosé",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Rosé",
+    "vintage": 2024,
+    "description": "Opens with aromatics of melon, strawberry and rose petal. Delivers on the palate tropical flavors of mango and passion fruit with a complexing touch of minerality. The wine finishes with mouth watering acidity that makes it perfect for food pairing or a hot summer day.",
+    "collection": "Niki's"
+  },
+  {
+    "name": "2024 Eric's Chardonnay",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Chardonnay",
+    "vintage": 2024,
+    "description": "Unoaked to exemplify the beautiful varietal character of Livermore Valley Chardonnay. Bursting with aromas of citrus, melon, and white flowers. The wine has bright flavors of honeydew and Meyer lemon with a touch of minerality.",
+    "collection": "Eric's"
+  },
+  {
+    "name": "2024 Sauvignon Blanc",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Sauvignon Blanc",
+    "vintage": 2024,
+    "description": "Beautiful aromatics of green melon and passion fruit framed by subtle sweet oak. Flavors of ripe grapefruit and honeydew backed by bright acidity.",
+    "collection": "Limited Release"
+  },
+  {
+    "name": "2021 Meritage",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Meritage",
+    "vintage": 2021,
+    "description": "Shows the balanced depth and richness that Bordeaux style blends bring to the table. The nose opens with red and black cherries, anise and currants framed by warm baking spice and vanilla bean French oak notes. The rich and full entry on the palate gives way to supple lingering tannins.",
+    "collection": "Small Lot"
+  },
+  {
+    "name": "2024 Louis Mel Sauvignon Blanc",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Sauvignon Blanc",
+    "vintage": 2024,
+    "description": "Classic fruit combined with juicy acidity which adds up to a wine bursting with youthful exuberance. Notes of classic grapefruit with additional notes of white apricot, guava, and key lime. Complemented by fruit-driven flavors of sweet Meyer lemon and candied citrus. Well rounded with a balanced acidity and a touch of minerality on the finish.",
+    "collection": "Louis Mel"
+  },
+  {
+    "name": "2024 Pacific Mist Pinot Grigio",
+    "vineyard": "Wente Vineyards",
+    "region": "Central Coast",
+    "country": "United States",
+    "varietal": "Pinot Grigio",
+    "vintage": 2024,
+    "description": "Breezy coastal influences from the Pacific Ocean shape this vibrant and refreshing Pinot Grigio. Delicate floral aromatics lead to a lively palate bursting with crisp green apple, zesty grapefruit, and a bright citrus core. A beautifully balanced acidity lends a mouthwatering quality.",
+    "collection": "Pacific Mist"
+  },
+  {
+    "name": "2023 Limited Release Chardonnay",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Chardonnay",
+    "vintage": 2023,
+    "description": "Meticulously crafted from estate-grown, certified sustainable vineyards and partially aged in French oak barrels. Vibrant notes of green apple, citrus, and subtle vanilla, presenting a refined balance of freshness and complexity.",
+    "collection": "Limited Release"
+  },
+  {
+    "name": "2020 nth DEGREE Cabernet Sauvignon",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2020,
+    "description": "A selection of handcrafted, limited production wines created by Fifth Generation Winemaker, Karl D. Wente. The focus is to create wines that reflect the distinctive terroir of the Wente family's estate vineyards. Each wine must show style and finesse of stellar degree to be included in the nth DEGREE program. 98 point rating.",
+    "collection": "nth DEGREE"
+  },
+  {
+    "name": "2023 nth DEGREE Cabernet Franc",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Franc",
+    "vintage": 2023,
+    "description": "The inaugural 2023 vintage is a compelling expression of why this variety thrives in the Livermore Valley. The nose entices with layered aromas of red and black cherry, earthy undertones, black pepper, and a touch of spicy French oak. Rich yet balanced mouthfeel with a refined tannin structure that carries gracefully through a long, elegant finish.",
+    "collection": "nth DEGREE"
+  },
+  {
+    "name": "2021 nth DEGREE Cabernet Sauvignon",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2021,
+    "description": "Handcrafted, limited production wine created by Fifth Generation Winemaker, Karl D. Wente. Reflects the distinctive terroir of the Wente family's estate vineyards in Livermore Valley. Only the best of the best achieve this distinction.",
+    "collection": "nth DEGREE"
+  },
+  {
+    "name": "2022 nth DEGREE Merlot",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Merlot",
+    "vintage": 2022,
+    "description": "Aromatics of candied red cherry and a touch of blueberry jam, a sweet and fruity profile, while notes of cocoa and baked cinnamon add layers of complexity and warmth. A full body wine with substantial mouth feel that finishes with big silky tannins. 95 point rating.",
+    "collection": "nth DEGREE"
+  },
+  {
+    "name": "2021 nth DEGREE Merlot",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Merlot",
+    "vintage": 2021,
+    "description": "Aromatics of candied red cherry and a touch of blueberry jam, a sweet and fruity profile, while notes of cocoa and baked cinnamon add layers of complexity and warmth. A full body wine with substantial mouth feel that finishes with big silky tannins.",
+    "collection": "nth DEGREE"
+  },
+  {
+    "name": "2023 nth DEGREE Pinot Noir",
+    "vineyard": "Wente Vineyards",
+    "region": "Arroyo Seco",
+    "country": "United States",
+    "varietal": "Pinot Noir",
+    "vintage": 2023,
+    "description": "Demonstrates the depth of the Dijon Clone. Dark ruby in the glass, the wine smells of black cherry and blackberries framed by vanilla and toasted oak. Flavors of ripe dark fruits and baking spices are followed by silky tannins.",
+    "collection": "nth DEGREE"
+  },
+  {
+    "name": "2022 nth DEGREE Syrah",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Syrah",
+    "vintage": 2022,
+    "description": "Leads with a mix of ripe plum and smoked meat aromas that are framed by clove and roasted coffee. Flavors are reminiscent of black raspberry, white pepper, and toasted vanilla. Rich and full-bodied, showcasing a velvety roundness and lingering plush tannins.",
+    "collection": "nth DEGREE"
+  },
+  {
+    "name": "2022 Duetto",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2022,
+    "description": "Offers depth and elegance, with aromas of pomegranate and black currant, complemented by oak spices, espresso, and cocoa. Well-balanced with fine tannins and mid-palate richness, ideal for aging and food pairings. Double Gold winner.",
+    "collection": "Artist Series"
+  },
+  {
+    "name": "2021 Duetto Cabernet Sauvignon",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2021,
+    "description": "Exhibits a measure of depth and richness carefully honed by a sense of refinement and elegance. Core aromas of black cherry and red plum are framed by a judicious layering of complex oak spices highlighting notes of fresh ground cinnamon and cocoa powder. 96 point rating.",
+    "collection": "Artist Series"
+  },
+  {
+    "name": "2022 Sonata",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Red Blend",
+    "vintage": 2022,
+    "description": "An Australian inspired blend of Cabernet and Syrah that impresses with its exotic substance and engaging complexity. Abundant aromas of blackberry and plum fruit form the essence of this elegantly styled wine. Complimentary oak spices of fresh vanilla bean with a hint of glazed caramel.",
+    "collection": "Artist Series"
+  },
+  {
+    "name": "2021 Sonata",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Red Blend",
+    "vintage": 2021,
+    "description": "An Australian inspired blend of Cabernet and Syrah that impresses with its exotic substance and engaging complexity. Abundant aromas of blackberry and plum fruit form the essence of this elegantly styled wine. Bright acidity and youthful tannins.",
+    "collection": "Artist Series"
+  },
+  {
+    "name": "2022 GSM",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "GSM Blend",
+    "vintage": 2022,
+    "description": "Opens with aromas of cherry sauce, plum, smoked meat and brown sugar. Flavors hit all of the markers for a Rhône style blend offering continuous fruit with a subtle bit of white pepper and earth on the finish. The palate is bright and finishes with fine grained tannins.",
+    "collection": "Artist Series"
+  },
+  {
+    "name": "2021 GSM",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "GSM Blend",
+    "vintage": 2021,
+    "description": "Rides the line between bright Grenache and savory Syrah with a hint of Mourvèdre. Gold award winner.",
+    "collection": "Artist Series"
+  },
+  {
+    "name": "2022 Serenity",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Red Blend",
+    "vintage": 2022,
+    "description": "An expressive and enjoyable wine, distinguished by its lively and well-integrated fruit and spice notes. Rhône-inspired palate marked by a harmonious blend of ripe plum and pepper, underscored by a subtle black tea nuance. The bright tannins from Petite Sirah add structure and elegance.",
+    "collection": "Artist Series"
+  },
+  {
+    "name": "2021 Serenity",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Red Blend",
+    "vintage": 2021,
+    "description": "A proprietary blend of Syrah, Petite Sirah, Grenache, and Mourvèdre that impresses with its exotic substance, riveting depth, and engaging complexity. Plenty of sweet oak showcases baked cinnamon and vanilla bean which perfectly compliments the abundant candied red cherry and dried fruit flavors. Double Gold winner.",
+    "collection": "Artist Series"
+  },
+  {
+    "name": "2020 Serenity",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Red Blend",
+    "vintage": 2020,
+    "description": "Showcases plenty presence of rich, sweet oak including baked cinnamon and vanilla bean. These notes perfectly compliment the abundant blackberry and plum fruit flavors. A hint of black tea and white pepper that never lets you forget that Syrah is the core of this beautiful blend.",
+    "collection": "Artist Series"
+  },
+  {
+    "name": "2021 Cabernet Franc",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Franc",
+    "vintage": 2021,
+    "description": "Wonderfully layered with aromas of red cherry, baked cinnamon and molasses. Ripe red cherry continues to form the core of this wine's flavor profile along with a touch of olive and warm vanilla oak. Medium bodied, polished and refined to such a degree that it is eminently attractive right now but should age beautifully for the next seven years.",
+    "collection": "Small Lot"
+  },
+  {
+    "name": "2020 Meritage",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Meritage",
+    "vintage": 2020,
+    "description": "Shows the balanced depth and richness that Bordeaux style blends bring to the table. Rich, creamy French Oak blends with the layers of cinnamon, cardamom, and raw vanilla bean. Matched equally by a generous concentration of fully ripened black currants, juicy black cherries, and rich plum jam.",
+    "collection": "Small Lot"
+  },
+  {
+    "name": "2021 Zinfandel",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Zinfandel",
+    "vintage": 2021,
+    "description": "Full of sweet oak flavors that play a significant role in the wine's character but not one that overshadows its deep and generous fruit profile. Dark chocolate, nutmeg, and dried fig are prominent in the aroma profile alongside rich and expressive Zinfandel fruit. Jammy boysenberry and ripe plum form the core of the palate with supporting notes of black pepper and spice.",
+    "collection": "Small Lot"
+  },
+  {
+    "name": "2022 Zinfandel",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Zinfandel",
+    "vintage": 2022,
+    "description": "Full of ripe plum, black pepper, warm vanilla and dark chocolate. Jammy blackberry and fig form the core of the palate along with supporting notes of black pepper and spice. Deeply filled with vibrant acidity and a firm spine of tannins.",
+    "collection": "Small Lot"
+  },
+  {
+    "name": "2022 Baily Hill Pinot Noir",
+    "vineyard": "Wente Vineyards",
+    "region": "Arroyo Seco",
+    "country": "United States",
+    "varietal": "Pinot Noir",
+    "vintage": 2022,
+    "description": "A bright and fruit forward example of cool coastal growing. Offers up youthful aromas of Bing cherries and ripe strawberries seamlessly combined with a delicate layer of dark soils, sage, and smoked nuts. Supple and silky tannins combined with modest acidity keep the wine in perfect balance.",
+    "collection": "Small Lot"
+  },
+  {
+    "name": "2022 Beyer Ranch Zinfandel",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Zinfandel",
+    "vintage": 2022,
+    "description": "Encompasses all of the traits that Zinfandel lovers crave. Deep and concentrated blackberry aromas are complemented by layered notes of spice, briar, and notable rich, creamy oak.",
+    "collection": "Beyer Ranch"
+  },
+  {
+    "name": "2022 Mount Diablo Highlands Red Blend",
+    "vineyard": "Wente Vineyards",
+    "region": "Central Coast",
+    "country": "United States",
+    "varietal": "Red Blend",
+    "vintage": 2022,
+    "description": "A testament to the winemaking expertise that defines the Wente legacy. A harmonious blend of varieties that the family has cultivated over five generations on the Central Coast of California.",
+    "collection": "Mount Diablo"
+  },
+  {
+    "name": "2024 Riverbank Riesling",
+    "vineyard": "Wente Vineyards",
+    "region": "Arroyo Seco",
+    "country": "United States",
+    "varietal": "Riesling",
+    "vintage": 2024,
+    "description": "A refreshing Riesling from the cool-climate Arroyo Seco appellation, showcasing the signature crisp acidity and stone fruit character of the region.",
+    "collection": "Riverbank"
+  },
+  {
+    "name": "2022 Sandstone Merlot",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Merlot",
+    "vintage": 2022,
+    "description": "Supple and beautifully balanced, showcasing aromas of ripe red cherry and plum that are complemented by creamy oak notes of sweet caramel and vanilla bean. Additional notes of white pepper, cardamom, and graphite provide more complexity.",
+    "collection": "Sandstone"
+  },
+  {
+    "name": "2022 Southern Hills Cabernet Sauvignon",
+    "vineyard": "Wente Vineyards",
+    "region": "Central Coast",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2022,
+    "description": "Named for vineyards located along the southern hills of the Central Coast. The Wente family farms approximately 400 acres of Cabernet Sauvignon vineyards using clones originating from Charles Wetmore's Bordeaux cuttings in the 19th century. With well-drained rocky soils and unique microclimates, the Southern Hills vineyards produce Cabernet of distinct character, depth, and intensity.",
+    "collection": "Southern Hills"
+  }
+]
+
+
+
+

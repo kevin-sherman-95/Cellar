@@ -1,0 +1,14 @@
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Red wine glass</title>
+  <desc id="desc">Icon of a wine glass filled with red wine</desc>
+  <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Glass outline -->
+    <path d="M8 3h8v4.5c0 2.9-1.9 5.3-4 5.3s-4-2.4-4-5.3V3z"/>
+    <!-- Wine fill -->
+    <path d="M8 6.5h8v1c0 2.3-1.6 4.3-4 4.3s-4-2-4-4.3v-1z" fill="#B91C1C" stroke="none"/>
+    <!-- Stem -->
+    <path d="M12 13v5.5"/>
+    <!-- Base -->
+    <path d="M8.5 20.5h7"/>
+  </g>
+</svg>

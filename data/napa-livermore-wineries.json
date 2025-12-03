@@ -1,0 +1,239 @@
+[
+  {
+    "name": "Caymus Cabernet Sauvignon",
+    "vineyard": "Caymus Vineyards",
+    "region": "Napa Valley",
+    "subregion": "Rutherford",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2019,
+    "description": "Rich and full-bodied Cabernet Sauvignon from one of Napa's most iconic producers.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Opus One",
+    "vineyard": "Opus One Winery",
+    "region": "Napa Valley",
+    "subregion": "Oakville",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2018,
+    "description": "A collaboration between Robert Mondavi and Baron Philippe de Rothschild.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Screaming Eagle Cabernet Sauvignon",
+    "vineyard": "Screaming Eagle",
+    "region": "Napa Valley",
+    "subregion": "Oakville",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2017,
+    "description": "Ultra-premium Napa Valley Cabernet Sauvignon.",
+    "alcoholContent": 14.8
+  },
+  {
+    "name": "Harlan Estate",
+    "vineyard": "Harlan Estate",
+    "region": "Napa Valley",
+    "subregion": "Oakville",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2018,
+    "description": "Bordeaux-style blend from a Napa Valley cult winery.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Stag's Leap Wine Cellars Cask 23",
+    "vineyard": "Stag's Leap Wine Cellars",
+    "region": "Napa Valley",
+    "subregion": "Stags Leap District",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2019,
+    "description": "Flagship wine from the winery that put Napa on the world stage.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Ridge Monte Bello",
+    "vineyard": "Ridge Vineyards",
+    "region": "Livermore Valley",
+    "subregion": "Santa Cruz Mountains",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2018,
+    "description": "Elegant Cabernet Sauvignon blend from Ridge's historic Monte Bello vineyard.",
+    "alcoholContent": 13.5
+  },
+  {
+    "name": "Wente Riva Ranch Chardonnay",
+    "vineyard": "Wente Vineyards",
+    "region": "Livermore Valley",
+    "subregion": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Chardonnay",
+    "vintage": 2020,
+    "description": "Classic Livermore Valley Chardonnay from California's oldest continuously operated family winery.",
+    "alcoholContent": 13.8
+  },
+  {
+    "name": "Murrieta's Well The Whip",
+    "vineyard": "Murrieta's Well",
+    "region": "Livermore Valley",
+    "subregion": "Livermore Valley",
+    "country": "United States",
+    "varietal": "White Blend",
+    "vintage": 2021,
+    "description": "Aromatic white blend showcasing Livermore Valley's unique terroir.",
+    "alcoholContent": 13.5
+  },
+  {
+    "name": "Concannon Petite Sirah",
+    "vineyard": "Concannon Vineyard",
+    "region": "Livermore Valley",
+    "subregion": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Petite Sirah",
+    "vintage": 2019,
+    "description": "Bold and spicy Petite Sirah, a signature varietal of Livermore Valley.",
+    "alcoholContent": 14.2
+  },
+  {
+    "name": "Steven Kent Winery Lineage",
+    "vineyard": "Steven Kent Winery",
+    "region": "Livermore Valley",
+    "subregion": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Bordeaux Blend",
+    "vintage": 2018,
+    "description": "Bordeaux-style blend representing the best of Livermore Valley.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Domaine Carneros Brut",
+    "vineyard": "Domaine Carneros",
+    "region": "Napa Valley",
+    "subregion": "Carneros",
+    "country": "United States",
+    "varietal": "Champagne Blend",
+    "vintage": 2017,
+    "description": "Traditional method sparkling wine from Napa's Carneros region.",
+    "alcoholContent": 12.5
+  },
+  {
+    "name": "Far Niente Chardonnay",
+    "vineyard": "Far Niente",
+    "region": "Napa Valley",
+    "subregion": "Oakville",
+    "country": "United States",
+    "varietal": "Chardonnay",
+    "vintage": 2020,
+    "description": "Rich and buttery Chardonnay from a historic Napa Valley estate.",
+    "alcoholContent": 14.2
+  },
+  {
+    "name": "Silver Oak Cabernet Sauvignon",
+    "vineyard": "Silver Oak Cellars",
+    "region": "Napa Valley",
+    "subregion": "Alexander Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2018,
+    "description": "Aged in American oak, this Cabernet is known for its approachable style.",
+    "alcoholContent": 14.1
+  },
+  {
+    "name": "Duckhorn Merlot",
+    "vineyard": "Duckhorn Vineyards",
+    "region": "Napa Valley",
+    "subregion": "Napa Valley",
+    "country": "United States",
+    "varietal": "Merlot",
+    "vintage": 2019,
+    "description": "Elegant Merlot showcasing Napa Valley's versatility.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Shafer Hillside Select",
+    "vineyard": "Shafer Vineyards",
+    "region": "Napa Valley",
+    "subregion": "Stags Leap District",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2018,
+    "description": "Powerful and concentrated Cabernet from Stags Leap District.",
+    "alcoholContent": 15.0
+  },
+  {
+    "name": "Nottingham Cellars Judge Family Vineyard Cabernet",
+    "vineyard": "Nottingham Cellars",
+    "region": "Livermore Valley",
+    "subregion": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2019,
+    "description": "Small-production Cabernet from Livermore Valley's Judge Family Vineyard.",
+    "alcoholContent": 14.3
+  },
+  {
+    "name": "Retzlaff Estate Merlot",
+    "vineyard": "Retzlaff Vineyards",
+    "region": "Livermore Valley",
+    "subregion": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Merlot",
+    "vintage": 2019,
+    "description": "Organic Merlot from Livermore Valley's Retzlaff Estate.",
+    "alcoholContent": 13.9
+  },
+  {
+    "name": "Fenestra Winery Valdiguié",
+    "vineyard": "Fenestra Winery",
+    "region": "Livermore Valley",
+    "subregion": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Valdiguié",
+    "vintage": 2020,
+    "description": "Unique varietal showcasing Livermore Valley's diverse grape growing.",
+    "alcoholContent": 13.2
+  },
+  {
+    "name": "Page Mill Winery Sauvignon Blanc",
+    "vineyard": "Page Mill Winery",
+    "region": "Livermore Valley",
+    "subregion": "Livermore Valley",
+    "country": "United States",
+    "varietal": "Sauvignon Blanc",
+    "vintage": 2021,
+    "description": "Crisp and refreshing Sauvignon Blanc from Livermore Valley.",
+    "alcoholContent": 13.0
+  },
+  {
+    "name": "Charles Krug Cabernet Sauvignon",
+    "vineyard": "Charles Krug Winery",
+    "region": "Napa Valley",
+    "subregion": "St. Helena",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2019,
+    "description": "Historic Napa Valley winery producing classic Cabernet Sauvignon.",
+    "alcoholContent": 14.5
+  },
+  {
+    "name": "Beringer Private Reserve Cabernet Sauvignon",
+    "vineyard": "Beringer Vineyards",
+    "region": "Napa Valley",
+    "subregion": "Napa Valley",
+    "country": "United States",
+    "varietal": "Cabernet Sauvignon",
+    "vintage": 2018,
+    "description": "Flagship Cabernet from one of Napa's oldest wineries.",
+    "alcoholContent": 14.8
+  }
+]
+
+
+
+
+
+

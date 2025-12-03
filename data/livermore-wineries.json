@@ -1,0 +1,409 @@
+[
+  {
+    "name": "3 Steves Winery",
+    "address": "5700 Greenville Road",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "925-364-4889",
+    "description": "Small family-owned winery in the heart of Livermore Valley producing handcrafted wines."
+  },
+  {
+    "name": "Almost Famous Wine Company",
+    "address": "2271 South Vasco Road",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "925-243-9039",
+    "description": "Boutique winery known for small-batch artisan wines."
+  },
+  {
+    "name": "Arroyo Cellars",
+    "address": "2270 Research Dr",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 292-9157",
+    "description": "Urban winery crafting premium wines in Livermore's research district."
+  },
+  {
+    "name": "Bent Creek Winery",
+    "address": "5455 Greenville Road",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "925-455-6320",
+    "description": "Family winery offering award-winning wines and scenic vineyard views."
+  },
+  {
+    "name": "BoaVentura de Caires Winery",
+    "address": "9309 Tesla Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 606-9672",
+    "description": "Portuguese-style winery specializing in traditional varietal wines."
+  },
+  {
+    "name": "Bodegas Aguirre",
+    "address": "8580 Tesla Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 606-0554",
+    "description": "Spanish-inspired winery producing bold, full-bodied wines."
+  },
+  {
+    "name": "Caddis Winery",
+    "address": "7878 Cedar Mountain Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 380-6219",
+    "description": "Small-lot winery with stunning Cedar Mountain views."
+  },
+  {
+    "name": "Charles R. Vineyards",
+    "address": "8195 Crane Ridge Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 337-3081",
+    "description": "Boutique family winery with panoramic valley views."
+  },
+  {
+    "name": "Concannon Vineyard",
+    "address": "4590 Tesla Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 583-1559",
+    "website": "https://www.concannonvineyard.com",
+    "description": "Historic winery founded in 1883, pioneers of Petite Sirah in California."
+  },
+  {
+    "name": "Crush'd Wine Bar + Kitchen",
+    "address": "312 Railroad Ave",
+    "city": "Danville",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 263-2189",
+    "description": "Modern wine bar featuring local Livermore Valley wines."
+  },
+  {
+    "name": "Cuda Ridge Wines",
+    "address": "2400 Arroyo Road",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(510) 304-0914",
+    "description": "Bordeaux-style wines crafted with passion and precision."
+  },
+  {
+    "name": "Dante Robere Vineyards",
+    "address": "1200 Wetmore Road",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": null,
+    "description": "Italian-inspired wines from estate-grown grapes."
+  },
+  {
+    "name": "Darcie Kent Vineyards",
+    "address": "7000 Tesla Road",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 243-9040",
+    "website": "https://www.darciekentvineyards.com",
+    "description": "Award-winning wines combined with original art by owner Darcie Kent."
+  },
+  {
+    "name": "Del Valle Winery",
+    "address": "4948 Tesla Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 464-2557",
+    "description": "Small family winery producing elegant, handcrafted wines."
+  },
+  {
+    "name": "Elliston Vineyards",
+    "address": "463 Kilkare Road",
+    "city": "Sunol",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": null,
+    "description": "Historic estate vineyard in the Sunol Hills."
+  },
+  {
+    "name": "Favalora Vineyards Winery",
+    "address": "2245 S Vasco Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 260-4439",
+    "description": "Family-owned boutique winery with Italian heritage."
+  },
+  {
+    "name": "Fenestra Winery",
+    "address": "83 Vallecitos Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 447-5246",
+    "website": "https://www.fenestrawinery.com",
+    "description": "One of Livermore Valley's oldest premium wineries, established in 1976."
+  },
+  {
+    "name": "Garré Vineyard Winery & Cafe",
+    "address": "7986 Tesla Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 371-8200",
+    "website": "https://www.garrewinery.com",
+    "description": "Italian-style winery with on-site cafe and bocce courts."
+  },
+  {
+    "name": "JMC Cellars",
+    "address": "6800 Greenville Road",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 449-1976",
+    "description": "Small-production wines crafted with meticulous attention to detail."
+  },
+  {
+    "name": "Las Positas Vineyards",
+    "address": "1828 Wetmore Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 449-9463",
+    "website": "https://www.laspositasvineyards.com",
+    "description": "Estate winery producing award-winning wines in historic setting."
+  },
+  {
+    "name": "Leisure Street Winery",
+    "address": "503 Leisure Street",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 337-5463",
+    "description": "Urban winery in downtown Livermore with relaxed atmosphere."
+  },
+  {
+    "name": "Longevity Wines",
+    "address": "2271 S Vasco Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 551-3673",
+    "website": "https://www.longevitywines.com",
+    "description": "Black-owned winery producing premium wines with passion and purpose."
+  },
+  {
+    "name": "McGrail Vineyards and Winery",
+    "address": "5600 Greenville Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 215-0717",
+    "website": "https://www.mcgrailvineyards.com",
+    "description": "Family estate winery specializing in Cabernet Sauvignon."
+  },
+  {
+    "name": "Mitchell Katz Winery",
+    "address": "2915 S Vasco Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 454-9463",
+    "description": "Artisan winery focused on small-lot, handcrafted wines."
+  },
+  {
+    "name": "Murrieta's Well",
+    "address": "3005 Mines Road",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 456-2395",
+    "website": "https://www.murrietaswell.com",
+    "description": "Historic estate with origins dating to 1884, known for Bordeaux-style blends."
+  },
+  {
+    "name": "Nella Terra Cellars",
+    "address": "5005 Sheridan Rd",
+    "city": "Sunol",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "408-893-9463",
+    "description": "Italian for 'in the earth,' producing wines rooted in tradition."
+  },
+  {
+    "name": "Occasio Winery",
+    "address": "2245 S Vasco Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 371-1987",
+    "website": "https://www.occasiowinery.com",
+    "description": "Small family winery crafting wines for special occasions."
+  },
+  {
+    "name": "Omega Road Winery",
+    "address": "2127 South Vasco Road",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 290-8616",
+    "description": "Boutique winery with focus on quality over quantity."
+  },
+  {
+    "name": "Page Mill Winery",
+    "address": "1960 S Livermore Ave",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 456-7676",
+    "website": "https://www.pagemillwinery.com",
+    "description": "Family winery producing elegant wines since 1976."
+  },
+  {
+    "name": "Pat Paulsen Vineyards",
+    "address": "5143 Tesla Road",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(415) 902-4013",
+    "description": "Founded by comedian Pat Paulsen, continuing his legacy of fine wine."
+  },
+  {
+    "name": "Pruett Farms",
+    "address": "5385 East Ave",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 525-3589",
+    "description": "Farm winery combining agriculture with artisan winemaking."
+  },
+  {
+    "name": "Retzlaff Vineyards",
+    "address": "1356 S Livermore Ave",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 447-8941",
+    "website": "https://www.retzlaffwinery.com",
+    "description": "Certified organic winery on historic estate property."
+  },
+  {
+    "name": "Rios-Lovell Estate Winery",
+    "address": "6500 Tesla Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 443-0434",
+    "description": "Family estate producing wines from sustainably farmed vineyards."
+  },
+  {
+    "name": "Rodrigue Molyneaux",
+    "address": "3053 Marina Ave",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 443-1998",
+    "description": "Small-lot winery known for distinctive handcrafted wines."
+  },
+  {
+    "name": "Rosa Fierro Cellars",
+    "address": "2245 S. Vasco Road, Suite A",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 963-1406",
+    "description": "Woman-owned winery crafting elegant, approachable wines."
+  },
+  {
+    "name": "Rubino Estates Winery",
+    "address": "1188 Vineyard Ave",
+    "city": "Pleasanton",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": null,
+    "website": "https://www.rubinoestates.com",
+    "description": "Estate winery in Pleasanton producing Italian varietals."
+  },
+  {
+    "name": "Ruby Hill Winery",
+    "address": "400 Vineyard Ave",
+    "city": "Pleasanton",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": null,
+    "website": "https://www.rubyhillwinery.net",
+    "description": "Historic winery with beautiful grounds perfect for events."
+  },
+  {
+    "name": "Sakura Winery",
+    "address": "2111 Research Drive, Unit 6",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "925-800-8463",
+    "description": "Japanese-inspired urban winery with unique approach to winemaking."
+  },
+  {
+    "name": "Singing Winemaker",
+    "address": "5143 Tesla Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 606-9463",
+    "description": "Where music and wine come together in perfect harmony."
+  },
+  {
+    "name": "The Steven Kent Winery",
+    "address": "2245 South Vasco Road, Suite C",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 243-6442",
+    "website": "https://www.stevenkent.com",
+    "description": "Award-winning winery producing world-class Cabernet Sauvignon and Bordeaux blends."
+  },
+  {
+    "name": "Tenuta Vineyards",
+    "address": "633 Kalthoff Common",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 960-1006",
+    "description": "Italian-style winery in downtown Livermore's wine district."
+  },
+  {
+    "name": "Wente Family Vineyards",
+    "address": "5565 Tesla Rd",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 456-2305",
+    "website": "https://www.wentevineyards.com",
+    "description": "America's oldest continuously operated family-owned winery, established in 1883."
+  },
+  {
+    "name": "Wood Family Vineyards",
+    "address": "2407 Research Dr",
+    "city": "Livermore",
+    "region": "Livermore Valley",
+    "country": "United States",
+    "phone": "(925) 606-7411",
+    "website": "https://www.woodfamilyvineyards.com",
+    "description": "Family-owned winery specializing in Chardonnay and Cabernet Sauvignon."
+  }
+]
+
+
+
+
