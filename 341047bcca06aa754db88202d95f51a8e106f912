@@ -1,0 +1,13 @@
+AI Notes:
+
+src/app/api/user-profile/route.ts: +6[0]
+src/app/api/wineries/route.ts: +10[0]
+src/app/api/wines/route.ts: +10[0]
+src/app/auth/error/page.tsx: +3[0],+14[0],+62-77[0] -13[0]
+src/app/search/page.tsx: +3[0],+6[0],+33-48[0] -3[0],-6[0]
+src/app/wines/page.tsx: +3[0],+9[0],+318-342[0] -3[0],-9[0]
+src/lib/wine-actions.ts: +363[0] -363[0]
+
+Conversations:
+
+[0]: 6027ab31-d13e-4233-94d9-e288cbd42ce9; Fixing Vercel deployment build error; composer-1;
