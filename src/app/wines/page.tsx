@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import WineCard from '@/components/wine/WineCard'
 import SearchFilters from '@/components/wine/SearchFilters'
 import { WineWithDetails, WineFilters } from '@/lib/types'
 
-export default function WinesPage() {
+function WinesContent() {
   const searchParams = useSearchParams()
   const [wines, setWines] = useState<WineWithDetails[]>([])
   const [loading, setLoading] = useState(true)
@@ -312,5 +312,31 @@ export default function WinesPage() {
         </>
       )}
     </div>
+  )
+}
+
+export default function WinesPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-serif font-bold text-cellar-900 mb-4">
+            Browse Wines
+          </h1>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array(6).fill(0).map((_, i) => (
+            <div key={i} className="bg-white rounded-lg shadow-lg p-6 animate-pulse">
+              <div className="h-48 bg-cellar-200 rounded mb-4"></div>
+              <div className="h-6 bg-cellar-200 rounded mb-2"></div>
+              <div className="h-4 bg-cellar-200 rounded mb-2"></div>
+              <div className="h-4 bg-cellar-200 rounded mb-4"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    }>
+      <WinesContent />
+    </Suspense>
   )
 }

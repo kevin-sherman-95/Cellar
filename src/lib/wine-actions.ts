@@ -360,7 +360,7 @@ export async function getRandomFeaturedWines(limit: number = 3) {
   const wines = []
 
   // Fetch each randomly selected wine using skip/take
-  for (const index of indices) {
+  for (const index of Array.from(indices)) {
     const result = await prisma.wine.findMany({
       skip: index,
       take: 1,
