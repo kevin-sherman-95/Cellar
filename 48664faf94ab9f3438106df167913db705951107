@@ -1,0 +1,4 @@
+AI Notes:
+
+src/app/my-wines/MyWinesClient.tsx: +3,+24-37,+39-41,+43-44,+138-142,+145 -3,-24-25,-27-29,-31-32,-126,-129
+src/components/profile/WineCollectionTabs.tsx: +3,+19,+22,+26,+31-42,+49-54 -3,-21,-25,-36-37
