@@ -120,8 +120,10 @@ Successfully implemented a full-featured winery directory for Cellar, scraping a
 
 3. **Re-seed wineries** (if needed):
    ```bash
-   DATABASE_URL="file:./prisma/dev.db" npm run db:seed-wineries
+   npm run db:seed-wineries
    ```
+   
+   **Note:** Make sure `DATABASE_URL` is set in your `.env.local` file with your PostgreSQL connection string.
 
 ### Database Status:
 - ✅ Schema updated with Winery model
@@ -166,6 +168,8 @@ Successfully implemented a full-featured winery directory for Cellar, scraping a
 
 ## Copyright
 Copyright Anysphere Inc.
+
+
 
 
 

@@ -23,10 +23,17 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
   const [activeTab, setActiveTab] = useState<string>('MY_CELLAR')
   const [ratingStates, setRatingStates] = useState<Record<string, number>>({})
   const [localUserWines, setLocalUserWines] = useState(initialUserWines)
+  
+  // Track deleted wine IDs to prevent them from reappearing after RSC refresh
+  const deletedWineIdsRef = useRef<Set<string>>(new Set())
 
   // Sync local state when props change (e.g., after router.refresh())
+  // But filter out any wines that were recently deleted to prevent stale data issues
   useEffect(() => {
-    setLocalUserWines(initialUserWines)
+    const filteredWines = initialUserWines.filter(
+      wine => !deletedWineIdsRef.current.has(wine.id)
+    )
+    setLocalUserWines(filteredWines)
   }, [initialUserWines])
   const [updatingQuantity, setUpdatingQuantity] = useState<string | null>(null)
   const [editingNotes, setEditingNotes] = useState<Record<string, boolean>>({})
@@ -93,36 +100,189 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
   const handleAddToTried = async (wineId: string) => {
     if (!session?.user?.id) return
 
-    // Optimistically update the UI
-    setLocalUserWines(prev => prev.map(uw => 
-      uw.wine.id === wineId ? { ...uw, inCellar: false, quantity: 0 } : uw
-    ))
+    // Find the current wine to check its quantity
+    const currentWine = localUserWines.find(uw => uw.wine.id === wineId)
+    if (!currentWine) return
 
-    try {
-      const response = await fetch('/api/user-wines', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          wineId,
-          inCellar: false,
-        }),
-      })
+    const currentQuantity = currentWine.quantity || 0
+    const newQuantity = currentQuantity - 1
 
-      if (!response.ok) {
-        console.error('Failed to move wine to tried')
-        // Revert on error
-        setLocalUserWines(prev => prev.map(uw => 
-          uw.wine.id === wineId ? { ...uw, inCellar: true } : uw
-        ))
-      }
-    } catch (error) {
-      console.error('Error moving wine to tried:', error)
-      // Revert on error
+    // Store original state for potential revert
+    const originalWine = currentWine
+    const originalWines = [...localUserWines]
+
+    // If quantity > 1, reduce quantity by 1 and ensure wine appears in Tried section
+    // If quantity === 1, remove from cellar and move to tried
+    if (currentQuantity > 1) {
+      // Optimistically update the UI - reduce quantity
       setLocalUserWines(prev => prev.map(uw => 
-        uw.wine.id === wineId ? { ...uw, inCellar: true } : uw
+        uw.wine.id === wineId ? { ...uw, quantity: newQuantity } : uw
       ))
+
+      try {
+        // Reduce quantity in cellar
+        const quantityResponse = await fetch('/api/user-wines', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            wineId,
+            quantity: newQuantity,
+          }),
+        })
+
+        if (!quantityResponse.ok) {
+          console.error('Failed to reduce quantity')
+          // Revert on error
+          setLocalUserWines(originalWines)
+          return
+        }
+
+        // Also ensure the wine is added to Tried section
+        const triedResponse = await fetch('/api/user-wines', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            wineData: {
+              name: currentWine.wine.name,
+              vineyard: currentWine.wine.vineyard,
+              region: currentWine.wine.region,
+              country: currentWine.wine.country,
+              varietal: currentWine.wine.varietal,
+              vintage: currentWine.wine.vintage,
+              description: currentWine.wine.description,
+            },
+            status: USER_WINE_STATUS.TRIED,
+            addToCellar: false,
+          }),
+        })
+
+        if (triedResponse.ok) {
+          const triedResult = await triedResponse.json()
+          
+          // Restore cellar status with reduced quantity
+          // This ensures wine appears in both cellar (with reduced qty) and Tried
+          await fetch('/api/user-wines', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              wineId,
+              quantity: newQuantity,
+              inCellar: true,
+            }),
+          })
+
+          // Add the new TRIED entry to local state
+          if (triedResult.triedEntry) {
+            setLocalUserWines(prev => {
+              // Check if entry already exists (shouldn't, but be safe)
+              const exists = prev.some(uw => uw.id === triedResult.triedEntry.id)
+              if (exists) return prev
+              
+              // Create new entry with wine data from currentWine
+              const newTriedEntry: UserWineWithDetails = {
+                ...triedResult.triedEntry,
+                wine: currentWine.wine
+              }
+              
+              return [...prev, newTriedEntry]
+            })
+          }
+        } else {
+          // Revert on error
+          setLocalUserWines(originalWines)
+        }
+      } catch (error) {
+        console.error('Error reducing quantity and adding to tried:', error)
+        // Revert on error
+        setLocalUserWines(originalWines)
+      }
+    } else {
+      // Quantity is 1, remove from cellar and create a new Tried entry
+      // Optimistically update the UI - remove from cellar view
+      setLocalUserWines(prev => prev.map(uw => 
+        uw.wine.id === wineId ? { ...uw, inCellar: false, quantity: 0 } : uw
+      ))
+
+      try {
+        // Remove from cellar
+        const cellarResponse = await fetch('/api/user-wines', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            wineId,
+            inCellar: false,
+          }),
+        })
+
+        if (!cellarResponse.ok) {
+          console.error('Failed to remove wine from cellar')
+          // Revert on error
+          setLocalUserWines(originalWines)
+          return
+        }
+
+        // Create a new Tried entry (allows duplicates)
+        const triedResponse = await fetch('/api/user-wines', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            wineData: {
+              name: currentWine.wine.name,
+              vineyard: currentWine.wine.vineyard,
+              region: currentWine.wine.region,
+              country: currentWine.wine.country,
+              varietal: currentWine.wine.varietal,
+              vintage: currentWine.wine.vintage,
+              description: currentWine.wine.description,
+            },
+            status: USER_WINE_STATUS.TRIED,
+            addToCellar: false,
+          }),
+        })
+
+        if (triedResponse.ok) {
+          const triedResult = await triedResponse.json()
+          
+          // Update local state: remove from cellar (already done optimistically) and add to TRIED
+          setLocalUserWines(prev => {
+            // Remove from cellar if still there
+            let updated = prev.map(uw => 
+              uw.wine.id === wineId ? { ...uw, inCellar: false, quantity: 0 } : uw
+            )
+            
+            // Add the new TRIED entry if it doesn't exist
+            if (triedResult.triedEntry) {
+              const exists = updated.some(uw => uw.id === triedResult.triedEntry.id)
+              if (!exists) {
+                const newTriedEntry: UserWineWithDetails = {
+                  ...triedResult.triedEntry,
+                  wine: currentWine.wine
+                }
+                updated = [...updated, newTriedEntry]
+              }
+            }
+            
+            return updated
+          })
+        } else {
+          // Revert on error
+          setLocalUserWines(originalWines)
+        }
+      } catch (error) {
+        console.error('Error moving wine to tried:', error)
+        // Revert on error
+        setLocalUserWines(originalWines)
+      }
     }
   }
 
@@ -158,6 +318,61 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     }
   }
 
+  const handleRemoveFromTried = async (userWineId: string) => {
+    if (!session?.user?.id) {
+      console.error('No user session')
+      throw new Error('No user session')
+    }
+
+    console.log('Removing wine from tried - userWineId:', userWineId)
+    
+    // Track this as deleted BEFORE the request to prevent RSC refresh from re-adding it
+    deletedWineIdsRef.current.add(userWineId)
+
+    // Store original state for potential revert
+    const originalWines = [...localUserWines]
+
+    // Optimistically update the UI - remove the specific entry
+    setLocalUserWines(prev => {
+      const filtered = prev.filter(uw => uw.id !== userWineId)
+      console.log('Optimistic update - original count:', prev.length, 'new count:', filtered.length)
+      return filtered
+    })
+
+    try {
+      console.log('Sending DELETE request to /api/user-wines with userWineId:', userWineId)
+      const response = await fetch('/api/user-wines', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userWineId,
+        }),
+      })
+
+      console.log('Response status:', response.status, 'ok:', response.ok)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Failed to remove wine from tried:', response.status, errorData)
+        // Revert on error - remove from deleted set and restore state
+        deletedWineIdsRef.current.delete(userWineId)
+        setLocalUserWines(originalWines)
+        throw new Error(errorData.error || `Failed to remove wine: ${response.status}`)
+      } else {
+        const result = await response.json().catch(() => ({}))
+        console.log('Successfully removed wine from tried:', result)
+      }
+    } catch (error) {
+      console.error('Error removing wine from tried:', error)
+      // Revert on error - remove from deleted set and restore state
+      deletedWineIdsRef.current.delete(userWineId)
+      setLocalUserWines(originalWines)
+      throw error // Re-throw so the caller can handle it
+    }
+  }
+
   const handleQuantityChange = async (wineId: string, newQuantity: number) => {
     if (!session?.user?.id) return
     if (newQuantity < 0) return
@@ -165,9 +380,42 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     // Store original state for potential revert
     const originalWines = localUserWines
 
-    // If quantity becomes 0, remove from cellar
+    // If quantity becomes 0, remove from cellar (but don't add to TRIED)
+    // Wines should only be added to TRIED when explicitly clicking "Add to Tried" button
     if (newQuantity === 0) {
-      handleAddToTried(wineId)
+      setUpdatingQuantity(wineId)
+      
+      // Optimistically update the UI - remove from cellar
+      setLocalUserWines(prev => prev.map(uw => 
+        uw.wine.id === wineId ? { ...uw, inCellar: false, quantity: 0 } : uw
+      ))
+
+      try {
+        // Remove from cellar by setting inCellar to false
+        const response = await fetch('/api/user-wines', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            wineId,
+            inCellar: false,
+            quantity: 0,
+          }),
+        })
+
+        if (!response.ok) {
+          console.error('Failed to remove from cellar')
+          // Revert on error
+          setLocalUserWines(originalWines)
+        }
+      } catch (error) {
+        console.error('Error removing from cellar:', error)
+        // Revert on error
+        setLocalUserWines(originalWines)
+      } finally {
+        setUpdatingQuantity(null)
+      }
       return
     }
 
@@ -322,19 +570,15 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
       icon: '✅',
       description: 'Wines you\'ve tasted and rated'
     },
-    { 
-      id: USER_WINE_STATUS.WANT_TO_TRY,
-      label: 'Want to Try', 
-      icon: '✨',
-      description: 'Wines you want to try in the future'
-    },
   ]
 
   const filteredWines = localUserWines.filter(userWine => {
     // Filter by tab
     let matchesTab = false
     if (activeTab === 'MY_CELLAR') {
-      matchesTab = userWine.status === USER_WINE_STATUS.TRIED && userWine.inCellar
+      // My Cellar shows all wines in cellar, regardless of status
+      // Cellar and TRIED are separate - you can have wines in cellar without them being TRIED
+      matchesTab = userWine.inCellar === true
     } else {
       matchesTab = userWine.status === activeTab
     }
@@ -352,7 +596,8 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
   // Get unique varietals from wines in current tab (before varietal filter)
   const tabFilteredWines = localUserWines.filter(userWine => {
     if (activeTab === 'MY_CELLAR') {
-      return userWine.status === USER_WINE_STATUS.TRIED && userWine.inCellar
+      // My Cellar shows all wines in cellar, regardless of status
+      return userWine.inCellar === true
     }
     return userWine.status === activeTab
   })
@@ -399,7 +644,11 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
 
   const getTabCount = (status: string) => {
     if (status === 'MY_CELLAR') {
-      return localUserWines.filter(wine => wine.status === USER_WINE_STATUS.TRIED && wine.inCellar).length
+      // My Cellar shows total bottles (sum of quantities), not unique wines
+      // Cellar and TRIED are separate - you can have wines in cellar without them being TRIED
+      return localUserWines
+        .filter(wine => wine.inCellar === true)
+        .reduce((sum, wine) => sum + (wine.quantity || 0), 0)
     }
     return localUserWines.filter(wine => wine.status === status).length
   }
@@ -750,19 +999,16 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                   className="mx-auto object-contain logo-transparent"
                 />
               )}
-              {activeTab === USER_WINE_STATUS.WANT_TO_TRY && '✨'}
             </div>
             <h4 className="text-lg font-serif font-medium text-cellar-800 dark:text-gray-200 mb-2">
               {activeTab === USER_WINE_STATUS.TRIED && 'No wines tried yet'}
               {activeTab === 'MY_CELLAR' && 'No wines in cellar'}
-              {activeTab === USER_WINE_STATUS.WANT_TO_TRY && 'No wines in wishlist yet'}
             </h4>
             <p className="text-cellar-600 dark:text-gray-400 mb-4">
               {isOwnProfile ? (
                 <>
                   {activeTab === USER_WINE_STATUS.TRIED && 'Start building your wine journey by rating wines you\'ve tasted.'}
                   {activeTab === 'MY_CELLAR' && 'Add wines to your cellar to track your current collection with ratings.'}
-                  {activeTab === USER_WINE_STATUS.WANT_TO_TRY && 'Start your wishlist by adding wines you want to try in the future.'}
                 </>
               ) : (
                 'This user hasn\'t added any wines to this collection yet.'
@@ -857,7 +1103,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                             onRatingChange={(rating) => handleRatingChange(userWine.wine.id, rating)}
                             interactive={true}
                             size="xs"
-                            showValue={false}
+                            showValue={true}
                           />
                         ) : (
                           <div className="flex text-orange-400">
@@ -899,11 +1145,56 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                         </div>
                         {isOwnProfile && (
                           <div className="flex items-center space-x-2 mt-1">
-                            <a href="#" className="text-teal-600 dark:text-teal-400 text-xs">[edit]</a>
-                            <Link href={`/wines/${userWine.wine.id}`} className="text-teal-600 dark:text-teal-400 text-xs">view »</Link>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                // TODO: Implement edit date functionality
+                                alert('Edit date functionality coming soon')
+                              }}
+                              className="text-teal-600 dark:text-teal-400 text-xs hover:underline"
+                            >
+                              [edit]
+                            </button>
+                            <Link 
+                              href={`/wines/${userWine.wine.id}`} 
+                              className="text-teal-600 dark:text-teal-400 text-xs hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              view »
+                            </Link>
                             <button 
-                              className="text-gray-400 hover:text-red-500 text-xs"
+                              type="button"
+                              onClick={async (e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                
+                                const userWineId = userWine.id
+                                console.log('Delete button clicked! userWineId:', userWineId, 'userWine object:', userWine)
+                                
+                                if (!userWineId) {
+                                  console.error('userWine.id is undefined!', userWine)
+                                  alert('Error: Unable to identify wine entry.')
+                                  return
+                                }
+                                
+                                const confirmed = window.confirm('Are you sure you want to remove this wine from your Tried collection?')
+                                if (confirmed) {
+                                  console.log('User confirmed, calling handleRemoveFromTried with userWineId:', userWineId)
+                                  try {
+                                    await handleRemoveFromTried(userWineId)
+                                    console.log('Successfully completed handleRemoveFromTried')
+                                  } catch (error) {
+                                    console.error('Error in handleRemoveFromTried:', error)
+                                    alert('Failed to remove wine. Please try again.')
+                                  }
+                                }
+                              }}
+                              className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 text-lg font-bold leading-none px-2 py-0.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded cursor-pointer transition-all"
                               title="Remove from collection"
+                              aria-label="Remove wine from Tried collection"
+                              style={{ lineHeight: '1' }}
                             >
                               ×
                             </button>
@@ -943,8 +1234,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                 {/* Collection Badge */}
                 <div className="absolute top-2 left-2 px-2 py-1 rounded-md text-xs font-medium text-white shadow-lg">
                   <div className={`px-2 py-1 rounded-md flex items-center gap-1 ${
-                    activeTab === 'MY_CELLAR' ? 'bg-purple-600' : 
-                    activeTab === USER_WINE_STATUS.WANT_TO_TRY ? 'bg-blue-600' : 'bg-green-600'
+                    activeTab === 'MY_CELLAR' ? 'bg-purple-600' : 'bg-green-600'
                   }`}>
                     {activeTab === 'MY_CELLAR' && (
                       <>
@@ -958,7 +1248,6 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                         <span>In Cellar</span>
                       </>
                     )}
-                    {activeTab === USER_WINE_STATUS.WANT_TO_TRY && '✨ Want to Try'}
                   </div>
                 </div>
 
@@ -1098,22 +1387,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                 <div className="text-sm text-cellar-600 dark:text-gray-400">Total Wines</div>
               </div>
               
-              {activeTab === USER_WINE_STATUS.WANT_TO_TRY ? (
-                <>
-                  <div>
-                    <div className="text-2xl font-bold text-cellar-800 dark:text-gray-200">
-                      {new Set(sortedWines.map(wine => wine.wine.country)).size}
-                    </div>
-                    <div className="text-sm text-cellar-600 dark:text-gray-400">Countries</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-cellar-800 dark:text-gray-200">
-                      {new Set(sortedWines.map(wine => wine.wine.region)).size}
-                    </div>
-                    <div className="text-sm text-cellar-600 dark:text-gray-400">Regions</div>
-                  </div>
-                </>
-              ) : (activeTab === USER_WINE_STATUS.TRIED || activeTab === 'MY_CELLAR') && (
+              {(activeTab === USER_WINE_STATUS.TRIED || activeTab === 'MY_CELLAR') && (
                 <>
                   <div>
                     <div className="text-2xl font-bold text-cellar-800 dark:text-gray-200">

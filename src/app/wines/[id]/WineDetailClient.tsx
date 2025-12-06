@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getWineBottleImageUrl } from '@/lib/wine-image-utils'
 // UserWineStatus values as strings
@@ -16,8 +17,14 @@ interface WineDetailProps {
 
 export default function WineDetailClient({ wine }: WineDetailProps) {
   const { data: session } = useSession()
+  const router = useRouter()
   const [userWineStatus, setUserWineStatus] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  // Safety check for wine object
+  if (!wine) {
+    return <div className="p-8 text-center">Wine not found</div>
+  }
 
   const displayRating = wine.averageRating || 0
   const filledStars = Math.floor(displayRating)
@@ -27,53 +34,198 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
   const emptyStars = 5 - filledStars - (hasHalfStar ? 1 : 0)
 
   const [inCellar, setInCellar] = useState(false)
+  const [cellarQuantity, setCellarQuantity] = useState(0)
+
+  // Check if wine is already in user's cellar on mount
+  useEffect(() => {
+    const checkWineStatus = async () => {
+      if (!session?.user?.id || !wine?.id) return
+
+      try {
+        const response = await fetch('/api/user-wines')
+        if (response.ok) {
+          const userWines = await response.json()
+          const wineInCollection = userWines.find((uw: any) => uw.wineId === wine.id)
+          
+          if (wineInCollection) {
+            setUserWineStatus(wineInCollection.status)
+            setInCellar(wineInCollection.inCellar || false)
+            setCellarQuantity(wineInCollection.quantity || 0)
+          }
+        }
+      } catch (error) {
+        console.error('Error checking wine status:', error)
+      }
+    }
+
+    checkWineStatus()
+  }, [session?.user?.id, wine?.id])
 
   const addToCollection = async (status: string, addToCellar: boolean = false) => {
+    if (!wine) {
+      console.error('Wine object is missing')
+      alert('Error: Wine information is missing')
+      return
+    }
+
     if (!session?.user) {
       // Redirect to sign in
       window.location.href = '/auth/signin'
       return
     }
 
-    setIsLoading(true)
-    // Optimistically update UI
-    setUserWineStatus(status)
-    if (addToCellar) {
-      setInCellar(true)
+    // If adding to cellar and wine is already in cellar, increment quantity instead
+    if (addToCellar && inCellar) {
+      if (!wine.id) {
+        console.error('Wine ID is missing')
+        alert('Error: Wine ID is missing')
+        return
+      }
+
+      const newQuantity = cellarQuantity + 1
+      const previousQuantity = cellarQuantity
+      
+      // Optimistically update UI immediately
+      setCellarQuantity(newQuantity)
+      setIsLoading(true)
+
+      try {
+        const response = await fetch('/api/user-wines', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            wineId: wine.id,
+            quantity: newQuantity,
+          }),
+        })
+
+        let result = {}
+        try {
+          const text = await response.text()
+          result = text ? JSON.parse(text) : {}
+        } catch (parseError) {
+          console.error('Error parsing response:', parseError)
+        }
+        
+        if (!response.ok) {
+          // Revert optimistic update on error
+          setCellarQuantity(previousQuantity)
+          setIsLoading(false)
+          const errorMessage = result.error || result.details || 'Failed to update quantity'
+          alert(`Failed to update quantity: ${errorMessage}`)
+          return
+        }
+
+        // Success - update quantity from response if available
+        if (result.quantity !== undefined) {
+          setCellarQuantity(result.quantity)
+        }
+        setIsLoading(false)
+        return
+      } catch (error) {
+        // Revert optimistic update on error
+        setCellarQuantity(previousQuantity)
+        setIsLoading(false)
+        console.error('Error updating quantity:', error)
+        alert('Failed to update quantity: ' + (error instanceof Error ? error.message : 'Unknown error'))
+        return
+      }
     }
 
+    // Optimistically update UI immediately for instant feedback
+    const previousQuantity = cellarQuantity
+    const previousInCellar = inCellar
+    if (addToCellar) {
+      setUserWineStatus(USER_WINE_STATUS.WANT_TO_TRY)
+      setInCellar(true)
+      // If already in cellar, increment quantity; otherwise set to 1
+      setCellarQuantity(inCellar ? cellarQuantity + 1 : 1)
+    } else {
+      setUserWineStatus(status)
+    }
+
+    setIsLoading(true)
+
     try {
+      // Validate required wine data
+      if (!wine?.name || !wine?.vineyard || !wine?.region || !wine?.country || !wine?.varietal) {
+        setIsLoading(false)
+        alert('Error: Missing required wine information')
+        // Revert optimistic update
+        if (addToCellar) {
+          setUserWineStatus(null)
+          setInCellar(previousInCellar)
+          setCellarQuantity(previousQuantity)
+        } else {
+          setUserWineStatus(null)
+        }
+        return
+      }
+
+      const requestBody = {
+        wineData: {
+          name: wine.name,
+          vineyard: wine.vineyard,
+          region: wine.region,
+          country: wine.country,
+          varietal: wine.varietal,
+          vintage: wine.vintage,
+          description: wine.description,
+          alcoholContent: wine.alcoholContent,
+        },
+        status: addToCellar ? 'WANT_TO_TRY' : status,
+        addToCellar,
+      }
+      
       const response = await fetch('/api/user-wines', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          wineData: {
-            name: wine.name,
-            vineyard: wine.vineyard,
-            region: wine.region,
-            country: wine.country,
-            varietal: wine.varietal,
-            vintage: wine.vintage,
-            description: wine.description,
-            alcoholContent: wine.alcoholContent,
-          },
-          status,
-          addToCellar,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
+      let result = {}
+      try {
+        const text = await response.text()
+        result = text ? JSON.parse(text) : {}
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError)
+      }
+
       if (!response.ok) {
-        // Revert on error
+        // Revert optimistic update on error
         setUserWineStatus(null)
-        setInCellar(false)
-        throw new Error('Failed to add wine to collection')
+        setInCellar(previousInCellar)
+        setCellarQuantity(previousQuantity)
+        setIsLoading(false)
+        const errorMessage = result.error || result.details || 'Failed to add wine to collection'
+        console.error('API Error:', result)
+        alert(`Failed to add wine to collection: ${errorMessage}`)
+        return
+      }
+
+      // Success - update state from response if available
+      if (addToCellar && result.quantity !== undefined) {
+        setCellarQuantity(result.quantity)
+        setInCellar(result.inCellar !== undefined ? result.inCellar : true)
+      }
+      setIsLoading(false)
+      
+      // If adding to TRIED (not cellar), navigate to my-wines page
+      if (status === USER_WINE_STATUS.TRIED && !addToCellar) {
+        window.location.href = '/my-wines'
       }
     } catch (error) {
-      console.error('Error adding wine to collection:', error)
-    } finally {
+      // Revert optimistic update on error
+      setUserWineStatus(null)
+      setInCellar(false)
+      setCellarQuantity(0)
       setIsLoading(false)
+      console.error('Error adding wine to collection:', error)
+      alert('Failed to add wine to collection: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -125,15 +277,39 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
                 {/* Collection Status Buttons */}
                 <div className="space-y-2">
                   <button
-                    onClick={() => addToCollection(USER_WINE_STATUS.TRIED, true)}
-                    disabled={isLoading || inCellar}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      try {
+                        addToCollection(USER_WINE_STATUS.WANT_TO_TRY, true).catch((error) => {
+                          console.error('Unhandled error in addToCollection:', error)
+                          alert('An error occurred. Please try again.')
+                        })
+                      } catch (error) {
+                        console.error('Error calling addToCollection:', error)
+                        alert('An error occurred. Please try again.')
+                      }
+                    }}
+                    disabled={isLoading}
                     className={`w-full py-3 px-4 rounded-md font-medium transition-colors ${
                       inCellar
-                        ? 'bg-green-600 text-white cursor-default'
+                        ? 'bg-green-600 text-white'
                         : 'bg-wine-600 hover:bg-wine-700 dark:bg-wine-700 dark:hover:bg-wine-600 text-white'
                     } disabled:opacity-50`}
                   >
-                    {inCellar ? '✓ In Cellar' : '+ Add to Cellar'}
+                    {inCellar 
+                      ? (cellarQuantity > 1 
+                          ? `✓ In Cellar (${cellarQuantity})` 
+                          : '✓ In Cellar')
+                      : '+ Add to Cellar'}
+                  </button>
+                  
+                  <button
+                    onClick={() => addToCollection(USER_WINE_STATUS.TRIED, false)}
+                    disabled={isLoading}
+                    className="w-full py-3 px-4 rounded-md font-medium transition-colors border border-green-600 dark:border-green-400 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50"
+                  >
+                    + Add to Tried
                   </button>
                   
                   <button
@@ -161,14 +337,14 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
                   <div>
                     <span className="font-medium text-cellar-700 dark:text-gray-200">Reviews:</span>
                     <span className="ml-2 text-cellar-600 dark:text-gray-400">
-                      {wine._count.reviews} {wine._count.reviews === 1 ? 'review' : 'reviews'}
+                      {wine._count?.reviews || 0} {(wine._count?.reviews || 0) === 1 ? 'review' : 'reviews'}
                     </span>
                   </div>
                   
                   <div>
                     <span className="font-medium text-cellar-700 dark:text-gray-200">In Collections:</span>
                     <span className="ml-2 text-cellar-600 dark:text-gray-400">
-                      {wine._count.userWines} {wine._count.userWines === 1 ? 'user' : 'users'}
+                      {wine._count?.userWines || 0} {(wine._count?.userWines || 0) === 1 ? 'user' : 'users'}
                     </span>
                   </div>
                 </div>
@@ -239,7 +415,7 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-serif font-bold text-cellar-900 dark:text-gray-100">
-                Reviews ({wine.reviews.length})
+                Reviews ({wine.reviews?.length || 0})
               </h2>
               
               {session?.user && (
@@ -252,7 +428,7 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
               )}
             </div>
 
-            {wine.reviews.length === 0 ? (
+            {!wine.reviews || wine.reviews.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-4xl mb-4">📝</div>
                 <h3 className="text-lg font-serif font-medium text-cellar-800 dark:text-gray-100 mb-2">
@@ -264,7 +440,7 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
               </div>
             ) : (
               <div className="space-y-6">
-                {wine.reviews.map((review: any) => (
+                {(wine.reviews || []).map((review: any) => (
                   <div key={review.id} className="border-b border-cellar-200 dark:border-gray-700 pb-6 last:border-b-0">
                     <div className="flex items-start space-x-4">
                       <div className="w-10 h-10 bg-wine-100 dark:bg-wine-900/40 rounded-full flex items-center justify-center">

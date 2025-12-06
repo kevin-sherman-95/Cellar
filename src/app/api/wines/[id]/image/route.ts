@@ -4,6 +4,8 @@ import { findWineImageMapping } from '@/lib/wine-image-mapping'
 import { getVivinoWineImage } from '@/lib/vivino-image-fetcher'
 import { prisma } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * API route to fetch wine bottle image from Unsplash
  * GET /api/wines/[id]/image
@@ -136,5 +138,7 @@ export async function GET(
     )
   }
 }
+
+
 
 

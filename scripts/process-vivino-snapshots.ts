@@ -122,10 +122,8 @@ async function seedWinesToDatabase(wines: ScrapedWine[]): Promise<void> {
 }
 
 async function main() {
-  // Set DATABASE_URL if not already set
-  if (!process.env.DATABASE_URL) {
-    process.env.DATABASE_URL = 'file:./prisma/dev.db';
-  }
+  // DATABASE_URL must be set in environment (e.g., .env.local)
+  // For PostgreSQL, connection string format: postgresql://user:password@host/database?sslmode=require
 
   const args = process.argv.slice(2);
   
@@ -169,6 +167,8 @@ main()
     console.error('❌ Error:', error);
     process.exit(1);
   });
+
+
 
 
 

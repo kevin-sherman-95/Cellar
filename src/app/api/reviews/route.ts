@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { createReview } from '@/lib/actions'
 import { ReviewFormData } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

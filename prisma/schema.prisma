@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -100,7 +100,9 @@ model UserWine {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   wine Wine @relation(fields: [wineId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, wineId])
+  // Allow multiple entries for same wine (e.g., multiple "Tried" entries)
+  // But ensure only one cellar entry per wine (handled in application logic)
+  @@index([userId, wineId, inCellar])
   @@map("user_wines")
 }
 

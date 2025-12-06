@@ -23,29 +23,29 @@ export default function ReviewPageClient({ wine, existingReview }: ReviewPageCli
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Breadcrumb */}
       <nav className="mb-8">
-        <ol className="flex items-center space-x-2 text-sm text-cellar-600">
+        <ol className="flex items-center space-x-2 text-sm text-cellar-600 dark:text-gray-400">
           <li>
-            <Link href="/" className="hover:text-wine-600">Home</Link>
+            <Link href="/" className="hover:text-wine-600 dark:hover:text-wine-400">Home</Link>
           </li>
           <li className="flex items-center">
-            <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4 mx-2 text-cellar-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
             </svg>
-            <Link href="/wines" className="hover:text-wine-600">Wines</Link>
+            <Link href="/wines" className="hover:text-wine-600 dark:hover:text-wine-400">Wines</Link>
           </li>
           <li className="flex items-center">
-            <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4 mx-2 text-cellar-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
             </svg>
-            <Link href={`/wines/${wine.id}`} className="hover:text-wine-600">
+            <Link href={`/wines/${wine.id}`} className="hover:text-wine-600 dark:hover:text-wine-400">
               {wine.name}
             </Link>
           </li>
           <li className="flex items-center">
-            <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-4 h-4 mx-2 text-cellar-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
             </svg>
-            <span className="text-cellar-800 font-medium">
+            <span className="text-cellar-800 dark:text-gray-200 font-medium">
               {existingReview ? 'Edit Review' : 'Write Review'}
             </span>
           </li>
@@ -55,14 +55,14 @@ export default function ReviewPageClient({ wine, existingReview }: ReviewPageCli
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Wine Info Sidebar */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-lg p-6 sticky top-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 sticky top-8 transition-colors">
             <div className="text-center mb-6">
-              <div className="w-full h-48 bg-gradient-to-br from-wine-100 to-wine-200 rounded-lg flex items-center justify-center mb-4">
+              <div className="w-full h-48 bg-gradient-to-br from-wine-100 to-wine-200 dark:from-wine-900 dark:to-wine-800 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
                 {wine.image ? (
                   <img 
                     src={wine.image} 
                     alt={wine.name}
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-full object-contain p-2 rounded-lg"
                   />
                 ) : (
                   <span className="text-6xl">🍷</span>
@@ -70,46 +70,46 @@ export default function ReviewPageClient({ wine, existingReview }: ReviewPageCli
               </div>
               
               {wine.vintage && (
-                <div className="inline-block bg-cellar-800 text-white px-3 py-1 rounded-md text-sm font-medium mb-2">
+                <div className="inline-block bg-cellar-800 dark:bg-cellar-700 text-white px-3 py-1 rounded-md text-sm font-medium mb-2">
                   {wine.vintage}
                 </div>
               )}
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-xl font-serif font-bold text-cellar-900">
+              <h2 className="text-xl font-serif font-bold text-cellar-900 dark:text-gray-100">
                 {wine.name}
               </h2>
               <Link 
                 href={`/wineries/${encodeURIComponent(wine.vineyard)}`}
-                className="font-medium text-cellar-700 hover:text-wine-600 transition-colors"
+                className="font-medium text-cellar-700 dark:text-gray-300 hover:text-wine-600 dark:hover:text-wine-400 transition-colors"
               >
                 {wine.vineyard}
               </Link>
-              <p className="text-cellar-600">{wine.region}, {wine.country}</p>
-              <p className="text-cellar-600 italic">{wine.varietal}</p>
+              <p className="text-cellar-600 dark:text-gray-400">{wine.region}, {wine.country}</p>
+              <p className="text-cellar-600 dark:text-gray-400 italic">{wine.varietal}</p>
             </div>
 
             {wine.description && (
-              <div className="mt-4 pt-4 border-t border-cellar-200">
-                <p className="text-sm text-cellar-700 leading-relaxed">
+              <div className="mt-4 pt-4 border-t border-cellar-200 dark:border-gray-700">
+                <p className="text-sm text-cellar-700 dark:text-gray-300 leading-relaxed">
                   {wine.description}
                 </p>
               </div>
             )}
 
-            <div className="mt-6 pt-4 border-t border-cellar-200">
+            <div className="mt-6 pt-4 border-t border-cellar-200 dark:border-gray-700">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-cellar-600">Reviews:</span>
-                <span className="font-medium text-cellar-800">
+                <span className="text-cellar-600 dark:text-gray-400">Reviews:</span>
+                <span className="font-medium text-cellar-800 dark:text-gray-200">
                   {wine._count?.reviews || 0}
                 </span>
               </div>
               
               {wine.alcoholContent && (
                 <div className="flex items-center justify-between text-sm mt-1">
-                  <span className="text-cellar-600">Alcohol:</span>
-                  <span className="font-medium text-cellar-800">
+                  <span className="text-cellar-600 dark:text-gray-400">Alcohol:</span>
+                  <span className="font-medium text-cellar-800 dark:text-gray-200">
                     {wine.alcoholContent}%
                   </span>
                 </div>
@@ -121,10 +121,10 @@ export default function ReviewPageClient({ wine, existingReview }: ReviewPageCli
         {/* Review Form */}
         <div className="lg:col-span-2">
           <div className="mb-6">
-            <h1 className="text-3xl font-serif font-bold text-cellar-900 mb-2">
+            <h1 className="text-3xl font-serif font-bold text-cellar-900 dark:text-gray-100 mb-2">
               {existingReview ? 'Edit Your Review' : 'Write a Review'}
             </h1>
-            <p className="text-lg text-cellar-600">
+            <p className="text-lg text-cellar-600 dark:text-gray-400">
               {existingReview 
                 ? 'Update your tasting notes and rating for this wine'
                 : 'Share your tasting experience with the community'

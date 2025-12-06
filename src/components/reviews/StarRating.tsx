@@ -68,7 +68,7 @@ export default function StarRating({
 
   // Calculate star widths for button positioning
   const starWidth = size === 'xs' ? 28 : size === 'sm' ? 72 : size === 'md' ? 80 : 100
-  const overlap = size === 'xs' ? 8 : 40
+  const overlap = size === 'xs' ? 4 : 32  // Slight overlap to bring stars closer together
   const visibleWidth = starWidth - overlap
 
   // Helper to compute rating from mouse position across full star row (used for wide spacing)
@@ -126,35 +126,32 @@ export default function StarRating({
               const starNumber = i + 1
               const halfStarNumber = i + 0.5
 
-              // Default: overlapping stars with half-star precision
-              // Calculate absolute positions for VISIBLE portions only
-              // Star 1: visible 0-80px (full star)
-              // Star 2: visible 80-120px (only the 40px not behind star 1)
-              // Star 3: visible 120-160px
-              // Star 4: visible 160-200px
-              // Star 5: visible 200-240px
+              // Stars with slight overlap - calculate positions accounting for overlap
+              // Star overlap: xs has 4px overlap, others have 32px overlap
+              const starOverlap = size === 'xs' ? 4 : 32
               
-              // Shift adjustment to move buttons slightly left
-              const shiftLeft = size === 'xs' ? 2 : 10
+              // Calculate star position: each star starts at (starWidth - overlap) * index
+              // This matches the actual visual position of the star
+              const starStart = i * (starWidth - starOverlap)
               
-              const visibleStart = i * visibleWidth + (i === 0 ? 0 : starWidth - visibleWidth) - shiftLeft
-              const visibleWidth_actual = i === 0 ? starWidth : visibleWidth
-              const visibleEnd = visibleStart + visibleWidth_actual
+              // Buttons should align with the actual star position (no shift)
+              // Each button covers the full star width, split at the midpoint
+              const buttonStart = starStart
+              const buttonWidth = starWidth
+              const buttonMidpoint = buttonStart + buttonWidth / 2
               
-              // For first star, make right button slightly smaller by adjusting split point
-              const adjustFirstStar = i === 0 ? 5 : 0
+              // Left half button covers first half of star
+              const leftButtonStart = buttonStart
+              const leftButtonWidth = buttonWidth / 2
+              const leftButtonEnd = buttonMidpoint
               
-              const leftButtonEnd = visibleStart + visibleWidth_actual / 2 + adjustFirstStar
-              
-              const leftButtonStart = visibleStart
-              const leftButtonWidth = leftButtonEnd - leftButtonStart
-              
-              const rightButtonStart = leftButtonEnd
-              const rightButtonWidth = visibleEnd - rightButtonStart
+              // Right half button covers second half of star
+              const rightButtonStart = buttonMidpoint
+              const rightButtonWidth = buttonWidth / 2
 
               return (
                 <div key={i}>
-                  {/* Left half button */}
+                  {/* Left half button - covers first half of star */}
                   <button
                     type="button"
                     className="absolute top-0"
@@ -176,7 +173,7 @@ export default function StarRating({
                     }}
                     aria-label={`Rate ${halfStarNumber} stars`}
                   />
-                  {/* Right half button */}
+                  {/* Right half button - covers second half of star */}
                   <button
                     type="button"
                     className="absolute top-0"
@@ -226,7 +223,7 @@ export default function StarRating({
                 marginLeft: i > 0 
                   ? (spacing === 'wide'
                       ? '0px'
-                      : (size === 'xs' ? '-8px' : '-40px'))
+                      : (size === 'xs' ? '-4px' : '-32px'))  // Slight overlap to bring stars closer
                   : '0',
                 position: 'relative',
                 zIndex: 5 - i // Higher z-index for earlier stars

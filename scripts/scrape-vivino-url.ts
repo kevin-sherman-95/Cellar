@@ -26,10 +26,8 @@ const __dirname = path.dirname(__filename);
 
 const prisma = new PrismaClient();
 
-// Set DATABASE_URL if not already set
-if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL = 'file:./prisma/dev.db';
-}
+// DATABASE_URL must be set in environment (e.g., .env.local)
+// For PostgreSQL, connection string format: postgresql://user:password@host/database?sslmode=require
 
 /**
  * Extract wines from a snapshot file (JSON or YAML)

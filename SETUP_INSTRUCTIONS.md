@@ -9,12 +9,25 @@ cd /Users/ksherman/Testproject/Cellar
 npm install
 ```
 
-## Step 2: Set Up Database (Quick SQLite Version)
-```bash
-npm run db:generate
-npm run db:push
-npm run db:seed
-```
+## Step 2: Set Up Database (PostgreSQL with Neon)
+
+1. **Create a Neon account and database:**
+   - Go to [neon.tech](https://neon.tech) and sign up for a free account
+   - Create a new project (choose a name and region)
+   - Copy the connection string from the dashboard
+
+2. **Add DATABASE_URL to `.env.local`:**
+   ```bash
+   DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
+   ```
+   (Replace with your actual Neon connection string)
+
+3. **Generate Prisma client and run migrations:**
+   ```bash
+   npm run db:generate
+   npx prisma migrate dev --name init
+   npm run db:seed
+   ```
 
 ## Step 3: Start Your App! 🍷
 ```bash
@@ -29,9 +42,11 @@ Go to: **http://localhost:3000**
 ## ✅ What I've Already Set Up For You:
 - ✅ Complete project structure
 - ✅ All code files and components  
-- ✅ Environment configuration (.env.local)
-- ✅ Database schema ready to use
+- ✅ Database schema configured for PostgreSQL
 - ✅ Beautiful wine-cellar inspired design
+
+## 📝 Note:
+You'll need to create a `.env.local` file with your `DATABASE_URL` from Neon before running the app.
 
 ## 🎯 What You'll See:
 - Elegant homepage with wine discovery

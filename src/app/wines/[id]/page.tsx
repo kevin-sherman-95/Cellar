@@ -16,13 +16,15 @@ export default async function WinePage({ params }: WinePageProps) {
   }
 
   // Calculate average rating
-  const averageRating = wine.reviews.length > 0
-    ? wine.reviews.reduce((acc, review) => acc + review.rating, 0) / wine.reviews.length
+  const reviews = wine.reviews || []
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
     : 0
 
   const wineWithAverage = {
     ...wine,
-    averageRating
+    averageRating,
+    reviews // Ensure reviews array exists
   }
 
   return <WineDetailClient wine={wineWithAverage} />

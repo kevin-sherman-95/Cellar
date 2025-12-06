@@ -3,6 +3,9 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { addPineRidgeBlackDiamondToTried } from '@/lib/actions'
 
+// Mark this route as dynamic to prevent static optimization during build
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

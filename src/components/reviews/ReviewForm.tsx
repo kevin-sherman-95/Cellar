@@ -14,7 +14,23 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
   const { data: session } = useSession()
   const [rating, setRating] = useState(existingReview?.rating || 0)
   const [notes, setNotes] = useState(existingReview?.notes || '')
-  const [photos, setPhotos] = useState<string[]>(existingReview?.photos || [])
+  
+  // Parse photos from JSON string if it exists, otherwise default to empty array
+  const parsePhotos = (photosData: any): string[] => {
+    if (!photosData) return []
+    if (Array.isArray(photosData)) return photosData
+    if (typeof photosData === 'string') {
+      try {
+        const parsed = JSON.parse(photosData)
+        return Array.isArray(parsed) ? parsed : []
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
+  
+  const [photos, setPhotos] = useState<string[]>(parsePhotos(existingReview?.photos))
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -31,16 +47,29 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
 
     try {
       const reviewData = {
+        wineId,
         rating,
         notes: notes.trim() || undefined,
         photos
       }
 
-      // TODO: Implement API call to save review
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+      const response = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reviewData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to save review')
+      }
+
+      const result = await response.json()
       
       if (onSubmit) {
-        onSubmit(reviewData)
+        onSubmit(result)
       }
       
       setMessage('Review saved successfully!')
@@ -52,7 +81,7 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
         setPhotos([])
       }
     } catch (error) {
-      setMessage('Error saving review. Please try again.')
+      setMessage(error instanceof Error ? error.message : 'Error saving review. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -77,11 +106,11 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
 
   if (!session?.user) {
     return (
-      <div className="bg-cellar-50 border border-cellar-200 rounded-lg p-6 text-center">
-        <h3 className="text-lg font-serif font-semibold text-cellar-800 mb-2">
+      <div className="bg-cellar-50 dark:bg-gray-800 border border-cellar-200 dark:border-gray-700 rounded-lg p-6 text-center">
+        <h3 className="text-lg font-serif font-semibold text-cellar-800 dark:text-gray-200 mb-2">
           Sign in to write a review
         </h3>
-        <p className="text-cellar-600 mb-4">
+        <p className="text-cellar-600 dark:text-gray-400 mb-4">
           Share your tasting experience with the community
         </p>
         <a
@@ -95,15 +124,15 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h3 className="text-xl font-serif font-bold text-cellar-900 mb-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 transition-colors">
+      <h3 className="text-xl font-serif font-bold text-cellar-900 dark:text-gray-100 mb-6">
         {existingReview ? 'Edit Your Review' : 'Write a Review'}
       </h3>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Rating */}
         <div>
-          <label className="block text-sm font-medium text-cellar-700 mb-2">
+          <label className="block text-sm font-medium text-cellar-700 dark:text-gray-300 mb-2">
             Rating *
           </label>
           <StarRating
@@ -113,14 +142,14 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
             size="lg"
             showValue={true}
           />
-          <p className="text-xs text-cellar-500 mt-1">
+          <p className="text-xs text-cellar-500 dark:text-gray-400 mt-1">
             Click to rate this wine from 1 to 5 stars
           </p>
         </div>
 
         {/* Tasting Notes */}
         <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-cellar-700 mb-2">
+          <label htmlFor="notes" className="block text-sm font-medium text-cellar-700 dark:text-gray-300 mb-2">
             Tasting Notes
           </label>
           <textarea
@@ -128,11 +157,11 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={5}
-            className="w-full px-3 py-2 border border-cellar-300 rounded-md focus:outline-none focus:ring-wine-500 focus:border-wine-500"
+            className="w-full px-3 py-2 border border-cellar-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-cellar-900 dark:text-gray-100 placeholder-cellar-400 dark:placeholder-gray-500 focus:outline-none focus:ring-wine-500 dark:focus:ring-wine-400 focus:border-wine-500 dark:focus:border-wine-400"
             placeholder="Share your tasting experience... What did you notice about the aroma, flavor, finish?"
             maxLength={1000}
           />
-          <div className="flex justify-between text-xs text-cellar-500 mt-1">
+          <div className="flex justify-between text-xs text-cellar-500 dark:text-gray-400 mt-1">
             <span>Optional - but helps other wine lovers!</span>
             <span>{notes.length}/1000</span>
           </div>
@@ -140,12 +169,12 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
 
         {/* Photo Upload */}
         <div>
-          <label className="block text-sm font-medium text-cellar-700 mb-2">
+          <label className="block text-sm font-medium text-cellar-700 dark:text-gray-300 mb-2">
             Photos
           </label>
           
           {/* Existing Photos */}
-          {photos.length > 0 && (
+          {Array.isArray(photos) && photos.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               {photos.map((photo, index) => (
                 <div key={index} className="relative group">
@@ -167,7 +196,7 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
           )}
           
           {/* Upload Button */}
-          <div className="border-2 border-dashed border-cellar-300 rounded-lg p-6 text-center">
+          <div className="border-2 border-dashed border-cellar-300 dark:border-gray-600 rounded-lg p-6 text-center">
             <input
               type="file"
               id="photos"
@@ -180,14 +209,14 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
               htmlFor="photos"
               className="cursor-pointer flex flex-col items-center space-y-2"
             >
-              <svg className="w-8 h-8 text-cellar-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-8 h-8 text-cellar-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
               <div className="text-sm">
-                <span className="text-wine-600 font-medium">Click to upload</span>
-                <span className="text-cellar-500"> or drag and drop</span>
+                <span className="text-wine-600 dark:text-wine-400 font-medium">Click to upload</span>
+                <span className="text-cellar-500 dark:text-gray-400"> or drag and drop</span>
               </div>
-              <p className="text-xs text-cellar-500">
+              <p className="text-xs text-cellar-500 dark:text-gray-400">
                 PNG, JPG, GIF up to 5MB each (max 5 photos)
               </p>
             </label>
@@ -195,8 +224,8 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
         </div>
 
         {/* Submit Button */}
-        <div className="flex items-center justify-between pt-4 border-t border-cellar-200">
-          <div className="text-sm text-cellar-500">
+        <div className="flex items-center justify-between pt-4 border-t border-cellar-200 dark:border-gray-700">
+          <div className="text-sm text-cellar-500 dark:text-gray-400">
             * Required fields
           </div>
           
@@ -212,7 +241,9 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
         {/* Message */}
         {message && (
           <div className={`p-4 rounded-md ${
-            message.includes('Error') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
+            message.includes('Error') 
+              ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' 
+              : 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
           }`}>
             {message}
           </div>
@@ -220,9 +251,9 @@ export default function ReviewForm({ wineId, onSubmit, existingReview }: ReviewF
       </form>
 
       {/* Review Guidelines */}
-      <div className="mt-8 p-4 bg-cellar-50 rounded-lg">
-        <h4 className="font-medium text-cellar-800 mb-2">Review Guidelines</h4>
-        <ul className="text-sm text-cellar-600 space-y-1">
+      <div className="mt-8 p-4 bg-cellar-50 dark:bg-gray-700/50 rounded-lg">
+        <h4 className="font-medium text-cellar-800 dark:text-gray-200 mb-2">Review Guidelines</h4>
+        <ul className="text-sm text-cellar-600 dark:text-gray-300 space-y-1">
           <li>• Be honest and descriptive about your tasting experience</li>
           <li>• Mention specific flavors, aromas, and characteristics you noticed</li>
           <li>• Consider the wine&apos;s balance, complexity, and finish</li>

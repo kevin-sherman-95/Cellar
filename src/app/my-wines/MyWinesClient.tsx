@@ -26,7 +26,6 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
 
   // Calculate statistics
   const tried = safeUserWines.filter(wine => wine.status === USER_WINE_STATUS.TRIED)
-  const wantToTry = safeUserWines.filter(wine => wine.status === USER_WINE_STATUS.WANT_TO_TRY)
   const inCellar = safeUserWines.filter(wine => wine.inCellar)
   
   const countries = new Set(safeUserWines.map(wine => wine.wine?.country).filter(Boolean))
@@ -40,9 +39,7 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
 
   const stats = {
     tried: tried.length,
-    wantToTry: wantToTry.length,
-    inCellar: inCellar.length,
-    totalBottles: totalBottles,
+    inCellar: totalBottles, // Use total bottles count to match My Cellar tab
     totalCountries: countries.size,
     totalRegions: regions.size,
     averageRating: Number(averageRating.toFixed(1))
@@ -71,7 +68,7 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
           Collection Overview
         </h2>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center">
             <div className="text-2xl font-bold text-green-700 dark:text-green-400">{stats.tried}</div>
             <div className="text-sm text-green-600 dark:text-green-300">Tried</div>
@@ -80,16 +77,6 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
           <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg text-center">
             <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">{stats.inCellar}</div>
             <div className="text-sm text-purple-600 dark:text-purple-300">In Cellar</div>
-          </div>
-          
-          <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">{stats.totalBottles}</div>
-            <div className="text-sm text-amber-600 dark:text-amber-300">Bottles</div>
-          </div>
-          
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">{stats.wantToTry}</div>
-            <div className="text-sm text-blue-600 dark:text-blue-300">Want to Try</div>
           </div>
           
           <div className="bg-slate-50 dark:bg-slate-900/20 p-4 rounded-lg text-center">

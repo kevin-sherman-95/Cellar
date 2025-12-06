@@ -99,20 +99,43 @@ export default function WineCard({
             vintage: wine.vintage,
             description: wine.description,
           },
-          status: 'TRIED',
+          status: 'WANT_TO_TRY', // Use neutral status - cellar doesn't mean TRIED
           addToCellar: true,
         }),
       })
 
+      const result = await response.json().catch(() => ({}))
+      
       if (!response.ok) {
-        throw new Error('Failed to add wine to cellar')
+        const errorMessage = result.error || result.details || 'Failed to add wine to cellar'
+        console.error('API Error:', result)
+        throw new Error(errorMessage)
       }
 
+      console.log('Successfully added wine to cellar:', result)
       setAddedToCellar(true)
-      onAddSuccess?.()
+      
+      // Call the success callback if provided, otherwise refresh the page
+      if (onAddSuccess) {
+        onAddSuccess()
+      } else {
+        // Refresh the page to show the wine in the cellar
+        // Use a small delay to ensure the database write has completed
+        setTimeout(() => {
+          // Try router.refresh first (works for server components)
+          router.refresh()
+          
+          // If we're on the my-wines page, also force a reload to ensure data updates
+          if (window.location.pathname === '/my-wines') {
+            // Force a hard reload to ensure fresh data
+            window.location.reload()
+          }
+        }, 200)
+      }
     } catch (err) {
-      setError('Failed to add to cellar')
-      console.error(err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add to cellar'
+      setError(errorMessage)
+      console.error('Error adding wine to cellar:', err)
     } finally {
       setIsAddingToCellar(false)
     }
@@ -150,14 +173,17 @@ export default function WineCard({
       })
 
       if (!response.ok) {
-        throw new Error('Failed to add wine to want to try')
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.error || errorData.details || 'Failed to add wine to want to try'
+        throw new Error(errorMessage)
       }
 
       setAddedToWantToTry(true)
       onAddSuccess?.()
     } catch (err) {
-      setError('Failed to add to want to try')
-      console.error(err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add to want to try'
+      setError(errorMessage)
+      console.error('Error adding wine to want to try:', err)
     } finally {
       setIsAddingToWantToTry(false)
     }

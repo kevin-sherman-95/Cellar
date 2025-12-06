@@ -86,23 +86,25 @@ The seeder intelligently maps both formats:
 
 ### Seed All Wineries (Recommended)
 ```bash
-DATABASE_URL="file:./prisma/dev.db" npm run db:seed-all-wineries
+npm run db:seed-all-wineries
 ```
 
 This runs the combined seeder that processes both datasets with automatic deduplication.
 
+**Note:** Make sure `DATABASE_URL` is set in your `.env.local` file with your PostgreSQL connection string.
+
 ### Seed Individual Dataset
 ```bash
 # Napa Valley only
-DATABASE_URL="file:./prisma/dev.db" npm run db:seed-wineries
+npm run db:seed-wineries
 
 # WineRelease only
-DATABASE_URL="file:./prisma/dev.db" npx tsx prisma/seed-wineries.ts data/winerelease-wineries.json
+npx tsx prisma/seed-wineries.ts data/winerelease-wineries.json
 ```
 
 ### View Data in Prisma Studio
 ```bash
-DATABASE_URL="file:./prisma/dev.db" npx prisma studio
+npx prisma studio
 ```
 
 Then visit: http://localhost:5555
@@ -160,6 +162,8 @@ The winery pages automatically support the expanded dataset:
 
 ## Copyright
 Copyright Anysphere Inc.
+
+
 
 
 

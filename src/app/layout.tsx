@@ -22,7 +22,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
         <ThemeProvider
-          defaultTheme="light"
+          defaultTheme="dark"
           storageKey="cellar-theme"
         >
           <SessionProvider>

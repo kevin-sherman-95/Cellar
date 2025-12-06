@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
@@ -30,6 +31,7 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [mounted, setMounted] = useState(false)
   
   const [formData, setFormData] = useState({
     name: '',
@@ -42,7 +44,11 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
     status: 'CELLAR' as 'WANT_TO_TRY' | 'TRIED' | 'CELLAR'
   })
 
-  if (!isOpen) return null
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!isOpen || !mounted) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -136,7 +142,7 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
     }))
   }
 
-  return (
+  const modalContent = (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div 
@@ -337,6 +343,8 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
       </div>
     </div>
   )
+
+  return createPortal(modalContent, document.body)
 }
 
 

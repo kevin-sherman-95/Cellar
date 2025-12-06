@@ -29,98 +29,254 @@ export async function getAllVarietals() {
 
 // User wine collection actions
 export async function addWineToCollection(userId: string, wineId: string, status: string) {
-  return await prisma.userWine.upsert({
-    where: {
-      userId_wineId: {
+  try {
+    // Find existing entry with this status (for non-TRIED statuses, we want to update if exists)
+    const existingEntry = await prisma.userWine.findFirst({
+      where: {
         userId,
-        wineId
+        wineId,
+        status
       }
-    },
-    update: { status },
-    create: {
-      userId,
-      wineId,
-      status
+    })
+
+    if (existingEntry) {
+      return await prisma.userWine.update({
+        where: { id: existingEntry.id },
+        data: { status }
+      })
+    } else {
+      return await prisma.userWine.create({
+        data: {
+          userId,
+          wineId,
+          status
+        }
+      })
     }
-  })
+  } catch (error) {
+    console.error('Error in addWineToCollection:', error)
+    throw error
+  }
 }
 
 export async function removeWineFromCollection(userId: string, wineId: string) {
-  return await prisma.userWine.delete({
+  // Delete all entries for this user and wine
+  // Note: This will delete all status entries (TRIED, WANT_TO_TRY, etc.)
+  return await prisma.userWine.deleteMany({
     where: {
-      userId_wineId: {
-        userId,
-        wineId
-      }
+      userId,
+      wineId
     }
   })
 }
 
-// Cellar management actions
-export async function addWineToCellar(userId: string, wineId: string, quantity: number = 1) {
-  return await prisma.userWine.upsert({
-    where: {
-      userId_wineId: {
-        userId,
-        wineId
-      }
-    },
-    update: {
-      inCellar: true,
-      quantity: quantity
-    },
-    create: {
+export async function removeUserWineEntry(userId: string, userWineId: string) {
+  // Delete a specific userWine entry by ID (with userId verification for security)
+  // This is useful for deleting individual TRIED entries when the same wine can have multiple entries
+  console.log('removeUserWineEntry called with:', { userId, userWineId })
+  
+  const userWine = await prisma.userWine.findUnique({
+    where: { id: userWineId }
+  })
+
+  console.log('Found userWine:', userWine ? { id: userWine.id, userId: userWine.userId, wineId: userWine.wineId, status: userWine.status } : 'not found')
+
+  if (!userWine) {
+    console.error('User wine entry not found for userWineId:', userWineId)
+    throw new Error(`User wine entry not found: ${userWineId}`)
+  }
+
+  if (userWine.userId !== userId) {
+    console.error('Unauthorized deletion attempt:', { entryUserId: userWine.userId, requestUserId: userId })
+    throw new Error('Unauthorized: Cannot delete another user\'s wine entry')
+  }
+
+  console.log('Deleting userWine entry:', userWineId)
+  const result = await prisma.userWine.delete({
+    where: { id: userWineId }
+  })
+  
+  console.log('Successfully deleted userWine entry:', result.id)
+  return result
+}
+
+// Add wine to TRIED collection - always creates a new entry to allow multiple entries
+export async function addWineToTried(userId: string, wineId: string) {
+  return await prisma.userWine.create({
+    data: {
       userId,
       wineId,
-      status: 'TRIED',
-      inCellar: true,
-      quantity: quantity
-    }
-  })
-}
-
-export async function removeWineFromCellar(userId: string, wineId: string) {
-  return await prisma.userWine.update({
-    where: {
-      userId_wineId: {
-        userId,
-        wineId
-      }
-    },
-    data: {
+      status: USER_WINE_STATUS.TRIED,
       inCellar: false,
       quantity: 0
     }
   })
 }
 
-export async function updateCellarQuantity(userId: string, wineId: string, quantity: number) {
-  return await prisma.userWine.update({
-    where: {
-      userId_wineId: {
+// Cellar management actions
+export async function addWineToCellar(userId: string, wineId: string, quantity: number = 1) {
+  try {
+    // Find existing cellar entry for this user and wine
+    const existingCellarEntry = await prisma.userWine.findFirst({
+      where: {
         userId,
-        wineId
+        wineId,
+        inCellar: true
       }
-    },
-    data: {
-      quantity: quantity,
-      inCellar: quantity > 0
+    })
+
+    if (existingCellarEntry) {
+      // Increment quantity if wine is already in cellar
+      const currentQuantity = existingCellarEntry.quantity || 0
+      const newQuantity = currentQuantity + quantity
+      return await prisma.userWine.update({
+        where: { id: existingCellarEntry.id },
+        data: {
+          inCellar: true,
+          quantity: newQuantity
+        }
+      })
+    } else {
+      // Check if there's any existing entry (even if not in cellar)
+      const existingEntry = await prisma.userWine.findFirst({
+        where: {
+          userId,
+          wineId
+        }
+      })
+
+      if (existingEntry) {
+        // Update existing entry to be in cellar
+        // Increment quantity if it already exists, otherwise set to quantity
+        const currentQuantity = existingEntry.quantity || 0
+        const newQuantity = currentQuantity + quantity
+        // Don't change status - keep existing status (cellar and tried are separate)
+        return await prisma.userWine.update({
+          where: { id: existingEntry.id },
+          data: {
+            inCellar: true,
+            quantity: newQuantity
+            // Don't set status - preserve existing status
+          }
+        })
+      } else {
+        // Create new cellar entry WITHOUT status TRIED
+        // Cellar entries should not automatically be TRIED - only add to TRIED when explicitly requested
+        return await prisma.userWine.create({
+          data: {
+            userId,
+            wineId,
+            status: 'WANT_TO_TRY', // Use a neutral status - cellar doesn't mean TRIED
+            inCellar: true,
+            quantity: quantity
+          }
+        })
+      }
     }
-  })
+  } catch (error) {
+    console.error('Error in addWineToCellar:', error)
+    throw error
+  }
 }
 
-export async function updateUserWineNotes(userId: string, wineId: string, notes: string | null) {
-  return await prisma.userWine.update({
-    where: {
-      userId_wineId: {
+export async function removeWineFromCellar(userId: string, wineId: string) {
+  try {
+    // Find the cellar entry for this user and wine
+    const cellarEntry = await prisma.userWine.findFirst({
+      where: {
         userId,
-        wineId
+        wineId,
+        inCellar: true
       }
-    },
-    data: {
-      notes: notes || null
+    })
+
+    if (cellarEntry) {
+      return await prisma.userWine.update({
+        where: { id: cellarEntry.id },
+        data: {
+          inCellar: false,
+          quantity: 0
+        }
+      })
     }
-  })
+    
+    // If no cellar entry found, return null (nothing to remove)
+    return null
+  } catch (error) {
+    console.error('Error in removeWineFromCellar:', error)
+    throw error
+  }
+}
+
+export async function updateCellarQuantity(userId: string, wineId: string, quantity: number) {
+  try {
+    // Find the cellar entry for this user and wine
+    const cellarEntry = await prisma.userWine.findFirst({
+      where: {
+        userId,
+        wineId,
+        inCellar: true
+      }
+    })
+
+    if (cellarEntry) {
+      return await prisma.userWine.update({
+        where: { id: cellarEntry.id },
+        data: {
+          quantity: quantity,
+          inCellar: quantity > 0
+        }
+      })
+    }
+    
+    // If no cellar entry found, create one WITHOUT status TRIED
+    // Cellar entries should not automatically be TRIED
+    return await prisma.userWine.create({
+      data: {
+        userId,
+        wineId,
+        status: 'WANT_TO_TRY', // Use neutral status - cellar doesn't mean TRIED
+        inCellar: quantity > 0,
+        quantity: quantity
+      }
+    })
+  } catch (error) {
+    console.error('Error in updateCellarQuantity:', error)
+    throw error
+  }
+}
+
+export async function updateUserWineNotes(userId: string, wineId: string, notes: string | null, entryId?: string) {
+  // If entryId is provided, update that specific entry
+  // Otherwise, update the cellar entry (notes are typically for cellar entries)
+  if (entryId) {
+    return await prisma.userWine.update({
+      where: { id: entryId },
+      data: {
+        notes: notes || null
+      }
+    })
+  } else {
+    // Find cellar entry and update its notes
+    const cellarEntry = await prisma.userWine.findFirst({
+      where: {
+        userId,
+        wineId,
+        inCellar: true
+      }
+    })
+
+    if (cellarEntry) {
+      return await prisma.userWine.update({
+        where: { id: cellarEntry.id },
+        data: {
+          notes: notes || null
+        }
+      })
+    }
+    
+    return null
+  }
 }
 
 export async function getUserWines(userId: string, status?: string) {
@@ -186,8 +342,8 @@ async function ensurePineRidgeInTried(userId: string) {
 
 // New function specifically for getting user wines with their reviews
 export async function getUserWinesWithReviews(userId: string, status?: string) {
-  // First ensure Pine Ridge wine is in user's tried collection
-  await ensurePineRidgeInTried(userId)
+  // Removed auto-adding Pine Ridge wine - wines should only be added when user explicitly clicks "Add to Tried"
+  // await ensurePineRidgeInTried(userId)
 
   const where: any = { userId }
   if (status) {
@@ -353,8 +509,8 @@ export async function addPineRidgeBlackDiamondToTried(userId: string) {
     // Find or create the wine
     const wine = await findOrCreateWine(wineData)
 
-    // Add wine to user's TRIED collection and cellar
-    await addWineToCollection(userId, wine.id, USER_WINE_STATUS.TRIED)
+    // Add wine to user's TRIED collection (always creates new entry)
+    await addWineToTried(userId, wine.id)
     
     // Also add to cellar for testing purposes
     await prisma.userWine.upsert({
