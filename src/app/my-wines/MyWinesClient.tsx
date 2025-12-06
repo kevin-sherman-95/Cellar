@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import WineCollectionTabs from '@/components/profile/WineCollectionTabs'
 import AddWineModal from '@/components/wine/AddWineModal'
 import { UserWineWithDetails, UserWineWithReview } from '@/lib/types'
@@ -21,15 +21,27 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
   const router = useRouter()
   const [isAddWineModalOpen, setIsAddWineModalOpen] = useState(false)
 
-  // Ensure userWines is always an array
-  const safeUserWines = Array.isArray(userWines) ? userWines : []
-
-  // Calculate statistics
-  const tried = safeUserWines.filter(wine => wine.status === USER_WINE_STATUS.TRIED)
-  const inCellar = safeUserWines.filter(wine => wine.inCellar)
+  // Ensure userWines is always an array and maintain local state
+  const initialWines = Array.isArray(userWines) ? userWines : []
+  const [localUserWines, setLocalUserWines] = useState(initialWines)
   
-  const countries = new Set(safeUserWines.map(wine => wine.wine?.country).filter(Boolean))
-  const regions = new Set(safeUserWines.map(wine => wine.wine?.region).filter(Boolean))
+  // Sync with props when they change (e.g., after router.refresh())
+  useEffect(() => {
+    const newWines = Array.isArray(userWines) ? userWines : []
+    setLocalUserWines(newWines)
+  }, [userWines])
+
+  // Callback for WineCollectionTabs to update the wine list
+  const handleWinesChange = useCallback((updatedWines: (UserWineWithDetails | UserWineWithReview)[]) => {
+    setLocalUserWines(updatedWines)
+  }, [])
+
+  // Calculate statistics using the shared local state
+  const tried = localUserWines.filter(wine => wine.status === USER_WINE_STATUS.TRIED)
+  const inCellar = localUserWines.filter(wine => wine.inCellar === true)
+  
+  const countries = new Set(localUserWines.map(wine => wine.wine?.country).filter(Boolean))
+  const regions = new Set(localUserWines.map(wine => wine.wine?.region).filter(Boolean))
   
   const totalBottles = inCellar.reduce((sum, wine) => sum + (wine.quantity || 0), 0)
   
@@ -123,10 +135,14 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
       </div>
 
       {/* Wine Collection Tabs */}
-      <WineCollectionTabs userWines={safeUserWines} isOwnProfile={true} />
+      <WineCollectionTabs 
+        userWines={localUserWines} 
+        isOwnProfile={true} 
+        onWinesChange={handleWinesChange}
+      />
 
       {/* Tips for New Users */}
-      {safeUserWines.length === 0 && (
+      {localUserWines.length === 0 && (
         <div className="mt-8 bg-cellar-50 dark:bg-gray-800 rounded-lg p-6">
           <h3 className="text-lg font-serif font-semibold text-cellar-800 dark:text-gray-200 mb-4">
             Getting Started with Your Wine Collection

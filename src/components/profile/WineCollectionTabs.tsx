@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 // UserWineStatus values as strings
@@ -16,16 +16,29 @@ import { getWineBottleImageUrl } from '@/lib/wine-image-utils'
 interface WineCollectionTabsProps {
   userWines: (UserWineWithDetails | UserWineWithReview)[]
   isOwnProfile?: boolean
+  onWinesChange?: (wines: (UserWineWithDetails | UserWineWithReview)[]) => void
 }
 
-export default function WineCollectionTabs({ userWines: initialUserWines, isOwnProfile = false }: WineCollectionTabsProps) {
+export default function WineCollectionTabs({ userWines: initialUserWines, isOwnProfile = false, onWinesChange }: WineCollectionTabsProps) {
   const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState<string>('MY_CELLAR')
   const [ratingStates, setRatingStates] = useState<Record<string, number>>({})
-  const [localUserWines, setLocalUserWines] = useState(initialUserWines)
+  const [localUserWines, setLocalUserWinesInternal] = useState(initialUserWines)
   
   // Track deleted wine IDs to prevent them from reappearing after RSC refresh
   const deletedWineIdsRef = useRef<Set<string>>(new Set())
+
+  // Wrapper to update local state and notify parent
+  const setLocalUserWines = useCallback((updater: (UserWineWithDetails | UserWineWithReview)[] | ((prev: (UserWineWithDetails | UserWineWithReview)[]) => (UserWineWithDetails | UserWineWithReview)[])) => {
+    setLocalUserWinesInternal(prev => {
+      const newWines = typeof updater === 'function' ? updater(prev) : updater
+      // Notify parent of the change
+      if (onWinesChange) {
+        onWinesChange(newWines)
+      }
+      return newWines
+    })
+  }, [onWinesChange])
 
   // Sync local state when props change (e.g., after router.refresh())
   // But filter out any wines that were recently deleted to prevent stale data issues
@@ -33,8 +46,12 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     const filteredWines = initialUserWines.filter(
       wine => !deletedWineIdsRef.current.has(wine.id)
     )
-    setLocalUserWines(filteredWines)
-  }, [initialUserWines])
+    setLocalUserWinesInternal(filteredWines)
+    // Also notify parent to keep stats in sync
+    if (onWinesChange) {
+      onWinesChange(filteredWines)
+    }
+  }, [initialUserWines, onWinesChange])
   const [updatingQuantity, setUpdatingQuantity] = useState<string | null>(null)
   const [editingNotes, setEditingNotes] = useState<Record<string, boolean>>({})
   const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({})
