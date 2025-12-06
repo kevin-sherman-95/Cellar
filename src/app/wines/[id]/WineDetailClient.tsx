@@ -20,19 +20,6 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
   const router = useRouter()
   const [userWineStatus, setUserWineStatus] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-
-  // Safety check for wine object
-  if (!wine) {
-    return <div className="p-8 text-center">Wine not found</div>
-  }
-
-  const displayRating = wine.averageRating || 0
-  const filledStars = Math.floor(displayRating)
-  // Check for half star - round to nearest 0.5 to handle floating point precision
-  const roundedRating = Math.round(displayRating * 2) / 2
-  const hasHalfStar = roundedRating > filledStars && roundedRating < filledStars + 1
-  const emptyStars = 5 - filledStars - (hasHalfStar ? 1 : 0)
-
   const [inCellar, setInCellar] = useState(false)
   const [cellarQuantity, setCellarQuantity] = useState(0)
 
@@ -60,6 +47,18 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
 
     checkWineStatus()
   }, [session?.user?.id, wine?.id])
+
+  // Safety check for wine object - MUST be after all hooks
+  if (!wine) {
+    return <div className="p-8 text-center">Wine not found</div>
+  }
+
+  const displayRating = wine.averageRating || 0
+  const filledStars = Math.floor(displayRating)
+  // Check for half star - round to nearest 0.5 to handle floating point precision
+  const roundedRating = Math.round(displayRating * 2) / 2
+  const hasHalfStar = roundedRating > filledStars && roundedRating < filledStars + 1
+  const emptyStars = 5 - filledStars - (hasHalfStar ? 1 : 0)
 
   const addToCollection = async (status: string, addToCellar: boolean = false) => {
     if (!wine) {
