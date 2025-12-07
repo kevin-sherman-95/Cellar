@@ -100,7 +100,7 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
           }),
         })
 
-        let result = {}
+        let result: { error?: string; details?: string; quantity?: number } = {}
         try {
           const text = await response.text()
           result = text ? JSON.parse(text) : {}
@@ -186,7 +186,7 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
         body: JSON.stringify(requestBody),
       })
 
-      let result = {}
+      let result: { error?: string; details?: string; quantity?: number; inCellar?: boolean } = {}
       try {
         const text = await response.text()
         result = text ? JSON.parse(text) : {}
