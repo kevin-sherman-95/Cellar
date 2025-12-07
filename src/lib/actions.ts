@@ -321,12 +321,10 @@ async function ensurePineRidgeInTried(userId: string) {
     const wine = await findOrCreateWine(pineRidgeWineData)
 
     // Check if user already has this wine in their tried collection
-    const existingUserWine = await prisma.userWine.findUnique({
+    const existingUserWine = await prisma.userWine.findFirst({
       where: {
-        userId_wineId: {
-          userId,
-          wineId: wine.id
-        }
+        userId,
+        wineId: wine.id
       }
     })
 
@@ -370,12 +368,10 @@ export async function getUserWinesWithReviews(userId: string, status?: string) {
   // For each user wine, get their review if it exists and calculate average rating
   const userWinesWithReviews = await Promise.all(
     userWines.map(async (userWine) => {
-      const userReview = await prisma.review.findUnique({
+      const userReview = await prisma.review.findFirst({
         where: {
-          userId_wineId: {
-            userId,
-            wineId: userWine.wineId
-          }
+          userId,
+          wineId: userWine.wineId
         }
       })
 
@@ -404,26 +400,36 @@ export async function getUserWinesWithReviews(userId: string, status?: string) {
 
 // Review actions
 export async function createReview(userId: string, wineId: string, data: ReviewFormData) {
-  return await prisma.review.upsert({
+  // Check if review already exists
+  const existingReview = await prisma.review.findFirst({
     where: {
-      userId_wineId: {
-        userId,
-        wineId
-      }
-    },
-    update: {
-      rating: data.rating,
-      notes: data.notes,
-      photos: data.photos ? JSON.stringify(data.photos) : null
-    },
-    create: {
       userId,
-      wineId,
-      rating: data.rating,
-      notes: data.notes,
-      photos: data.photos ? JSON.stringify(data.photos) : null
+      wineId
     }
   })
+
+  if (existingReview) {
+    // Update existing review
+    return await prisma.review.update({
+      where: { id: existingReview.id },
+      data: {
+        rating: data.rating,
+        notes: data.notes,
+        photos: data.photos ? JSON.stringify(data.photos) : null
+      }
+    })
+  } else {
+    // Create new review
+    return await prisma.review.create({
+      data: {
+        userId,
+        wineId,
+        rating: data.rating,
+        notes: data.notes,
+        photos: data.photos ? JSON.stringify(data.photos) : null
+      }
+    })
+  }
 }
 
 export async function getReviewsByUser(userId: string) {
@@ -513,25 +519,32 @@ export async function addPineRidgeBlackDiamondToTried(userId: string) {
     await addWineToTried(userId, wine.id)
     
     // Also add to cellar for testing purposes
-    await prisma.userWine.upsert({
+    const existingUserWine = await prisma.userWine.findFirst({
       where: {
-        userId_wineId: {
-          userId,
-          wineId: wine.id
-        }
-      },
-      update: {
-        inCellar: true,
-        quantity: 1
-      },
-      create: {
         userId,
-        wineId: wine.id,
-        status: USER_WINE_STATUS.TRIED,
-        inCellar: true,
-        quantity: 1
+        wineId: wine.id
       }
     })
+
+    if (existingUserWine) {
+      await prisma.userWine.update({
+        where: { id: existingUserWine.id },
+        data: {
+          inCellar: true,
+          quantity: 1
+        }
+      })
+    } else {
+      await prisma.userWine.create({
+        data: {
+          userId,
+          wineId: wine.id,
+          status: USER_WINE_STATUS.TRIED,
+          inCellar: true,
+          quantity: 1
+        }
+      })
+    }
 
     return { success: true, wineId: wine.id, wineName: wine.name }
   } catch (error) {
