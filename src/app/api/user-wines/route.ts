@@ -190,6 +190,12 @@ export async function PATCH(request: NextRequest) {
     // Handle notes updates
     if (notes !== undefined) {
       const result = await updateUserWineNotes(session.user.id, wineId, notes)
+      if (!result) {
+        return NextResponse.json(
+          { error: 'Wine entry not found' },
+          { status: 404 }
+        )
+      }
       return NextResponse.json({ success: true, notes: result.notes })
     }
 
