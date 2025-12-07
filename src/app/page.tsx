@@ -2,6 +2,9 @@ import Link from 'next/link'
 import { getRandomFeaturedWines } from '@/lib/wine-actions'
 import { getWineBottlePlaceholder } from '@/lib/wine-image-utils'
 
+// Force dynamic rendering to avoid database access during build
+export const dynamic = 'force-dynamic'
+
 export default async function Home() {
 
   const featuredWines = await getRandomFeaturedWines(3)
