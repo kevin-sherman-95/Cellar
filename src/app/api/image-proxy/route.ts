@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const metadata = await image.metadata()
 
     if (!metadata.width || !metadata.height) {
-      return new NextResponse(buffer, {
+      return new NextResponse(new Uint8Array(buffer), {
         headers: {
           'Content-Type': response.headers.get('content-type') || 'image/png',
           'Cache-Control': 'public, max-age=604800, immutable',
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       .png()
       .toBuffer()
 
-    return new NextResponse(processed, {
+    return new NextResponse(new Uint8Array(processed), {
       headers: {
         'Content-Type': 'image/png',
         'Cache-Control': 'public, max-age=604800, immutable',
