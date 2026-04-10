@@ -41,7 +41,8 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
     year: '',
     region: '',
     country: 'United States',
-    status: 'CELLAR' as 'WANT_TO_TRY' | 'TRIED' | 'CELLAR'
+    status: 'CELLAR' as 'WANT_TO_TRY' | 'TRIED' | 'CELLAR',
+    dateAdded: new Date().toISOString().split('T')[0]
   })
 
   useEffect(() => {
@@ -101,7 +102,8 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
         body: JSON.stringify({
           wineData,
           status,
-          addToCellar
+          addToCellar,
+          dateAdded: formData.dateAdded
         }),
       })
 
@@ -122,7 +124,8 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
         year: '',
         region: '',
         country: 'United States',
-        status: 'CELLAR'
+        status: 'CELLAR',
+        dateAdded: new Date().toISOString().split('T')[0]
       })
 
       if (onSuccess) {
@@ -303,6 +306,23 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
                   <option key={country} value={country}>{country}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Date Added */}
+            <div>
+              <label htmlFor="dateAdded" className="block text-sm font-medium text-cellar-700 mb-1">
+                Date Added
+              </label>
+              <input
+                type="date"
+                id="dateAdded"
+                name="dateAdded"
+                value={formData.dateAdded}
+                onChange={handleInputChange}
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full px-3 py-2 border border-cellar-300 rounded-md focus:outline-none focus:ring-wine-500 focus:border-wine-500"
+                disabled={isSubmitting}
+              />
             </div>
 
             {/* Status */}

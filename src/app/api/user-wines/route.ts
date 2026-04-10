@@ -47,7 +47,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { wineData, status, addToCellar } = body
+    const { wineData, status, addToCellar, dateAdded } = body
+    const addedAt = dateAdded ? new Date(dateAdded) : undefined
 
     if (!wineData || !status) {
       return NextResponse.json(
@@ -97,7 +98,7 @@ export async function POST(request: NextRequest) {
       // Add to cellar with quantity of 1 (will increment if already in cellar)
       console.log('Adding wine to cellar:', { userId: session.user.id, wineId: wine.id })
       try {
-        cellarResult = await addWineToCellar(session.user.id, wine.id, 1)
+        cellarResult = await addWineToCellar(session.user.id, wine.id, 1, addedAt)
         console.log('Successfully added wine to cellar:', { 
           userWineId: cellarResult.id, 
           inCellar: cellarResult.inCellar, 
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
       // For TRIED status, always create a new entry to allow multiple entries
       console.log('Adding wine to TRIED collection:', { userId: session.user.id, wineId: wine.id, wineName: wine.name })
       try {
-        const triedResult = await addWineToTried(session.user.id, wine.id)
+        const triedResult = await addWineToTried(session.user.id, wine.id, addedAt)
         console.log('Successfully added wine to TRIED collection:', triedResult)
         
         // Fetch the full user wine entry with wine details for immediate UI update
@@ -161,7 +162,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // For other statuses, use upsert to update existing entry
-      await addWineToCollection(session.user.id, wine.id, status)
+      await addWineToCollection(session.user.id, wine.id, status, addedAt)
     }
 
     // Fetch the full user wine entry with wine details for immediate UI update

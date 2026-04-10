@@ -12,15 +12,15 @@ interface WineCardProps {
   wine: WineWithDetails
   showAddToCollection?: boolean
   onAddSuccess?: () => void
-  // Optional props for interactive rating and quantity (used in WineCollectionTabs)
   userRating?: number
   onRatingChange?: (rating: number) => void
   quantity?: number
   onQuantityChange?: (quantity: number) => void
   updatingQuantity?: boolean
   isOwnProfile?: boolean
-  testLayout?: boolean // For test card comparison - vertical, centered layout
-  alignRatingBottom?: boolean // Optional: align rating/Qty block to bottom of card body
+  testLayout?: boolean
+  alignRatingBottom?: boolean
+  addedAt?: Date | string
 }
 
 export default function WineCard({ 
@@ -34,7 +34,8 @@ export default function WineCard({
   updatingQuantity = false,
   isOwnProfile = false,
   testLayout = false,
-  alignRatingBottom = false
+  alignRatingBottom = false,
+  addedAt
 }: WineCardProps) {
   const { data: session } = useSession()
   const router = useRouter()
@@ -271,6 +272,12 @@ export default function WineCard({
           <p className="text-cellar-500 dark:text-gray-400 text-sm">{wine.region}, {wine.country}</p>
           <p className="text-cellar-500 dark:text-gray-400 text-sm italic">{wine.varietal}</p>
         </div>
+
+        {addedAt && (
+          <p className="text-cellar-400 dark:text-gray-500 text-xs mb-3">
+            Added {new Date(addedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </p>
+        )}
         
         {/* Rating and Quantity (interactive when props provided, otherwise show average rating) */}
         <div className={alignRatingBottom ? 'mt-auto' : ''}>

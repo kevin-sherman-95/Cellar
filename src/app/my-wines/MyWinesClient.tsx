@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import WineCollectionTabs from '@/components/profile/WineCollectionTabs'
 import AddWineModal from '@/components/wine/AddWineModal'
 import { UserWineWithDetails, UserWineWithReview } from '@/lib/types'
@@ -20,6 +20,13 @@ interface MyWinesClientProps {
 export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
   const router = useRouter()
   const [isAddWineModalOpen, setIsAddWineModalOpen] = useState(false)
+  const [selectedTab, setSelectedTab] = useState<{ tab: string; key: number } | undefined>(undefined)
+  const tabsRef = useRef<HTMLDivElement>(null)
+
+  const scrollToTabs = (tab: string) => {
+    setSelectedTab(prev => ({ tab, key: (prev?.key ?? 0) + 1 }))
+    tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   // Ensure userWines is always an array and maintain local state
   const initialWines = Array.isArray(userWines) ? userWines : []
@@ -96,25 +103,37 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
         </h2>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center">
+          <button
+            onClick={() => scrollToTabs('TRIED')}
+            className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center cursor-pointer hover:ring-2 hover:ring-green-400 dark:hover:ring-green-500 transition-all"
+          >
             <div className="text-2xl font-bold text-green-700 dark:text-green-400">{stats.tried}</div>
             <div className="text-sm text-green-600 dark:text-green-300">Tried</div>
-          </div>
+          </button>
           
-          <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg text-center">
+          <button
+            onClick={() => scrollToTabs('MY_CELLAR')}
+            className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg text-center cursor-pointer hover:ring-2 hover:ring-purple-400 dark:hover:ring-purple-500 transition-all"
+          >
             <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">{stats.inCellar}</div>
             <div className="text-sm text-purple-600 dark:text-purple-300">In Cellar</div>
-          </div>
+          </button>
           
-          <div className="bg-slate-50 dark:bg-slate-900/20 p-4 rounded-lg text-center">
+          <button
+            onClick={() => scrollToTabs('MY_CELLAR')}
+            className="bg-slate-50 dark:bg-slate-900/20 p-4 rounded-lg text-center cursor-pointer hover:ring-2 hover:ring-slate-400 dark:hover:ring-slate-500 transition-all"
+          >
             <div className="text-2xl font-bold text-slate-700 dark:text-slate-400">{stats.totalCountries}</div>
             <div className="text-sm text-slate-600 dark:text-slate-300">Countries</div>
-          </div>
+          </button>
           
-          <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg text-center">
+          <button
+            onClick={() => scrollToTabs('MY_CELLAR')}
+            className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg text-center cursor-pointer hover:ring-2 hover:ring-indigo-400 dark:hover:ring-indigo-500 transition-all"
+          >
             <div className="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{stats.totalRegions}</div>
             <div className="text-sm text-indigo-600 dark:text-indigo-300">Regions</div>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -150,11 +169,15 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
       </div>
 
       {/* Wine Collection Tabs */}
-      <WineCollectionTabs 
-        userWines={localUserWines} 
-        isOwnProfile={true} 
-        onWinesChange={handleWinesChange}
-      />
+      <div ref={tabsRef}>
+        <WineCollectionTabs 
+          userWines={localUserWines} 
+          isOwnProfile={true} 
+          onWinesChange={handleWinesChange}
+          defaultTab={selectedTab?.tab}
+          defaultTabKey={selectedTab?.key}
+        />
+      </div>
 
       {/* Tips for New Users */}
       {localUserWines.length === 0 && (
