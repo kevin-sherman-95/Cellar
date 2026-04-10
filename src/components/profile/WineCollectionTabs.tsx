@@ -1076,7 +1076,6 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                             alt={`${userWine.wine.name} bottle`}
                             className="w-full h-full object-contain p-1"
                             onError={(e) => {
-                              // Fallback to a simple SVG if image fails to load
                               const target = e.target as HTMLImageElement
                               target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjY0IiBmaWxsPSIjODU2NjQ0Ii8+PHBhdGggZD0iTTEwIDVIMzZWMjBIMTBaIiBmaWxsPSIjNjY0NDIyIi8+PHBhdGggZD0iTTEyIDhIMzRWMThIMTJaIiBmaWxsPSIjZmZmIi8+PC9zdmc+'
                             }}

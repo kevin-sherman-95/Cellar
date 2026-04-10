@@ -12,19 +12,32 @@ export function getWineBottlePlaceholder(varietal?: string | null): string {
 }
 
 /**
+ * Routes an external image URL through the white-background-removal proxy.
+ * SVGs, data URIs, and local paths are returned as-is.
+ */
+export function getProxiedImageUrl(url: string): string {
+  if (
+    url.startsWith('data:') ||
+    url.startsWith('/') ||
+    url.endsWith('.svg')
+  ) {
+    return url
+  }
+  return `/api/image-proxy?url=${encodeURIComponent(url)}`
+}
+
+/**
  * Client-side helper to get wine bottle image URL
- * This can be used in components to get placeholder images
+ * Routes through the image proxy to remove white backgrounds.
  */
 export function getWineBottleImageUrl(
   wineImage: string | null | undefined,
   wineName: string,
   varietal?: string | null
 ): string {
-  // If wine has an image, use it
   if (wineImage) {
-    return wineImage
+    return getProxiedImageUrl(wineImage)
   }
   
-  // Otherwise, return placeholder based on varietal
-  return getWineBottlePlaceholder(varietal)
+  return getProxiedImageUrl(getWineBottlePlaceholder(varietal))
 }

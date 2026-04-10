@@ -22,28 +22,28 @@ export async function GET(request: NextRequest) {
 
     console.log('🔍 Wines API called with search:', search)
 
-    // Build where clause
+    // Build where clause (case-insensitive search)
     const where: any = {}
 
     if (search && search.trim().length > 0) {
       where.OR = [
-        { name: { contains: search } },
-        { vineyard: { contains: search } },
-        { region: { contains: search } },
-        { varietal: { contains: search } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { vineyard: { contains: search, mode: 'insensitive' } },
+        { region: { contains: search, mode: 'insensitive' } },
+        { varietal: { contains: search, mode: 'insensitive' } },
       ]
     }
 
     if (varietal) {
-      where.varietal = { contains: varietal }
+      where.varietal = { contains: varietal, mode: 'insensitive' }
     }
 
     if (region) {
-      where.region = { contains: region }
+      where.region = { contains: region, mode: 'insensitive' }
     }
 
     if (country) {
-      where.country = { contains: country }
+      where.country = { contains: country, mode: 'insensitive' }
     }
 
     if (vintage) {

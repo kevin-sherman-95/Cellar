@@ -9,28 +9,28 @@ export async function getWines(filters?: WineFilters, includeExternal: boolean =
   try {
     const where: any = {}
     
-    // Only add search filter if search query is not empty
+    // Only add search filter if search query is not empty (case-insensitive)
     const hasSearchQuery = filters?.search && filters.search.trim().length > 0
     
     if (hasSearchQuery) {
       where.OR = [
-        { name: { contains: filters.search } },
-        { vineyard: { contains: filters.search } },
-        { region: { contains: filters.search } },
-        { varietal: { contains: filters.search } },
+        { name: { contains: filters.search, mode: 'insensitive' } },
+        { vineyard: { contains: filters.search, mode: 'insensitive' } },
+        { region: { contains: filters.search, mode: 'insensitive' } },
+        { varietal: { contains: filters.search, mode: 'insensitive' } },
       ]
     }
     
     if (filters?.varietal) {
-      where.varietal = { contains: filters.varietal }
+      where.varietal = { contains: filters.varietal, mode: 'insensitive' }
     }
     
     if (filters?.region) {
-      where.region = { contains: filters.region }
+      where.region = { contains: filters.region, mode: 'insensitive' }
     }
     
     if (filters?.country) {
-      where.country = { contains: filters.country }
+      where.country = { contains: filters.country, mode: 'insensitive' }
     }
     
     if (filters?.vintage) {
@@ -204,13 +204,45 @@ function getDefaultWineImage(): string {
   return 'https://web-common.vivino.com/assets/bottleShot/fallback_1.png'
 }
 
+/**
+ * Find or create a winery by name.
+ * This ensures wineries from user cellars appear in Browse Wineries.
+ */
+export async function findOrCreateWinery(name: string, region: string, country: string) {
+  // First try to find existing winery by name (case-insensitive match using contains)
+  const existingWinery = await prisma.winery.findFirst({
+    where: {
+      name: {
+        equals: name,
+      }
+    }
+  })
+
+  if (existingWinery) {
+    return existingWinery
+  }
+
+  // Create new winery if not found
+  return await prisma.winery.create({
+    data: {
+      name,
+      region,
+      country,
+    }
+  })
+}
+
 export async function createWine(data: WineFormData) {
+  // First, find or create the winery so it appears in Browse Wineries
+  const winery = await findOrCreateWinery(data.vineyard, data.region, data.country)
+
   return await prisma.wine.create({
     data: {
       ...data,
       vintage: data.vintage || null,
       alcoholContent: data.alcoholContent || null,
       image: data.image || getDefaultWineImage(),
+      wineryId: winery.id,
     }
   })
 }
@@ -226,10 +258,19 @@ export async function findOrCreateWine(data: WineFormData) {
   })
 
   if (existingWine) {
+    // If the wine exists but doesn't have a wineryId, link it to a winery
+    // This ensures wineries from user cellars appear in Browse Wineries
+    if (!existingWine.wineryId) {
+      const winery = await findOrCreateWinery(data.vineyard, data.region, data.country)
+      return await prisma.wine.update({
+        where: { id: existingWine.id },
+        data: { wineryId: winery.id }
+      })
+    }
     return existingWine
   }
 
-  // Create new wine if not found
+  // Create new wine if not found (this will also create the winery)
   return await createWine(data)
 }
 

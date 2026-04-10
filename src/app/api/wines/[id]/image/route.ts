@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getWineBottleImage } from '@/lib/wine-image-server'
 import { findWineImageMapping } from '@/lib/wine-image-mapping'
 import { getVivinoWineImage } from '@/lib/vivino-image-fetcher'
+import { searchGoogleForWineImage } from '@/lib/google-image-search'
 import { prisma } from '@/lib/db'
 
 export const dynamic = 'force-dynamic'
@@ -84,6 +85,26 @@ export async function GET(
         image: vivinoImage,
         cached: true,
         source: 'vivino'
+      })
+    }
+
+    // Try Google Image Search (confidence-scored product images)
+    console.log(`🔎 Trying Google Image Search for: ${wine.name} from ${wine.vineyard}`)
+    const googleImage = await searchGoogleForWineImage(wine.name, wine.vineyard, wine.varietal, wine.vintage)
+    if (googleImage) {
+      try {
+        await prisma.wine.update({
+          where: { id: wineId },
+          data: { image: googleImage }
+        })
+        console.log(`✅ Cached Google image for: ${wine.name} from ${wine.vineyard}`)
+      } catch (error) {
+        console.error('Error caching Google image:', error)
+      }
+      return NextResponse.json({
+        image: googleImage,
+        cached: true,
+        source: 'google'
       })
     }
 

@@ -13,18 +13,20 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const query = searchParams.get('q') || ''
 
+    console.log('🔍 Autocomplete search for:', query)
+
     if (!query || query.length < 2) {
       return NextResponse.json({ wines: [] })
     }
 
-    // Search local database with optimized query
+    // Search local database with optimized query (case-insensitive)
     const wines = await prisma.wine.findMany({
       where: {
         OR: [
-          { name: { contains: query } },
-          { vineyard: { contains: query } },
-          { varietal: { contains: query } },
-          { region: { contains: query } },
+          { name: { contains: query, mode: 'insensitive' } },
+          { vineyard: { contains: query, mode: 'insensitive' } },
+          { varietal: { contains: query, mode: 'insensitive' } },
+          { region: { contains: query, mode: 'insensitive' } },
         ]
       },
       select: {
@@ -41,6 +43,7 @@ export async function GET(request: NextRequest) {
       ]
     })
 
+    console.log('✅ Autocomplete found', wines.length, 'wines:', wines.map(w => w.name).join(', '))
     return NextResponse.json({ wines })
   } catch (error) {
     console.error('Error in wine autocomplete API:', error)

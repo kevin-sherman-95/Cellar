@@ -57,8 +57,23 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
     averageRating: Number(averageRating.toFixed(1))
   }
 
-  const handleWineAdded = () => {
-    // Refresh the page to show the new wine
+  const handleWineAdded = (newUserWine?: any) => {
+    // If we have the new wine data, add it immediately to local state
+    if (newUserWine) {
+      setLocalUserWines(prev => {
+        // Check if wine already exists (in case of quantity increment)
+        const existingIndex = prev.findIndex(uw => uw.wine.id === newUserWine.wine.id)
+        if (existingIndex >= 0) {
+          // Update existing entry
+          const updated = [...prev]
+          updated[existingIndex] = newUserWine
+          return updated
+        }
+        // Add new wine at the beginning (most recent)
+        return [newUserWine, ...prev]
+      })
+    }
+    // Also refresh to ensure server and client stay in sync
     router.refresh()
   }
 

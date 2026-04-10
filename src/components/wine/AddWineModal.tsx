@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 interface AddWineModalProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess?: () => void
+  onSuccess?: (newUserWine?: any) => void
 }
 
 const WINE_VARIETALS = [
@@ -110,6 +110,9 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
         throw new Error(errorData.error || 'Failed to add wine')
       }
 
+      // Get the response data including the new userWine
+      const responseData = await response.json()
+
       // Reset form
       setFormData({
         name: '',
@@ -123,7 +126,8 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
       })
 
       if (onSuccess) {
-        onSuccess()
+        // Pass the new userWine data for immediate UI update
+        onSuccess(responseData.userWine)
       }
       
       onClose()

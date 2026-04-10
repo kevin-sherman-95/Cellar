@@ -64,3 +64,5 @@ npx prisma migrate dev --name init_postgresql
 
 # If that works, your database is set up!
 ```
+
+

@@ -12,7 +12,7 @@ export const USER_WINE_STATUS = {
 export type UserWineStatus = typeof USER_WINE_STATUS[keyof typeof USER_WINE_STATUS]
 
 // Re-export server actions
-export { getWines, getWineById, createWine, getWinesByVineyard, getVineyardStats, getFeaturedWines, getHighestRatedWines, getPersonalizedRecommendations } from './wine-actions'
+export { getWines, getWineById, createWine, getWinesByVineyard, getVineyardStats, getFeaturedWines, getHighestRatedWines, getPersonalizedRecommendations, findOrCreateWinery } from './wine-actions'
 export { findOrCreateWine }
 
 // Get all unique varietals from the database
