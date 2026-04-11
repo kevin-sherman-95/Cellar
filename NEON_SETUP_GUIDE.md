@@ -68,3 +68,5 @@ npm run dev
 - [ ] Have both connection strings (pooler and direct)
 - [ ] Migrations run successfully
 - [ ] App starts without errors
+
+

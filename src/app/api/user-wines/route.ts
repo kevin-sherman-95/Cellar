@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { getUserWinesWithReviews, addWineToCollection, addWineToCellar, addWineToTried, removeWineFromCellar, removeWineFromCollection, removeUserWineEntry, findOrCreateWine, updateCellarQuantity, updateUserWineNotes } from '@/lib/actions'
 import { WineFormData } from '@/lib/types'
+import { prisma } from '@/lib/db'
+import { resolveAndCacheWineImage } from '@/lib/wine-image-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,7 +47,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { wineData, status, addToCellar } = body
+    const { wineData, status, addToCellar, dateAdded } = body
+    const addedAt = dateAdded ? new Date(dateAdded) : undefined
 
     if (!wineData || !status) {
       return NextResponse.json(
@@ -77,13 +80,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Kick off background image resolution if the wine lacks a real image
+    if (!wine.image || wine.image.includes('fallback_1.png')) {
+      resolveAndCacheWineImage({
+        id: wine.id,
+        name: wine.name,
+        vineyard: wine.vineyard,
+        varietal: wine.varietal,
+        vintage: wine.vintage,
+        image: wine.image,
+      }).catch(err => console.error('Background image fetch failed:', err))
+    }
+
     // Add wine to user's collection or cellar
     let cellarResult = null
     if (addToCellar) {
       // Add to cellar with quantity of 1 (will increment if already in cellar)
       console.log('Adding wine to cellar:', { userId: session.user.id, wineId: wine.id })
       try {
-        cellarResult = await addWineToCellar(session.user.id, wine.id, 1)
+        cellarResult = await addWineToCellar(session.user.id, wine.id, 1, addedAt)
         console.log('Successfully added wine to cellar:', { 
           userWineId: cellarResult.id, 
           inCellar: cellarResult.inCellar, 
@@ -99,15 +114,47 @@ export async function POST(request: NextRequest) {
       // For TRIED status, always create a new entry to allow multiple entries
       console.log('Adding wine to TRIED collection:', { userId: session.user.id, wineId: wine.id, wineName: wine.name })
       try {
-        const triedResult = await addWineToTried(session.user.id, wine.id)
+        const triedResult = await addWineToTried(session.user.id, wine.id, addedAt)
         console.log('Successfully added wine to TRIED collection:', triedResult)
-        // Return success with details about what was added
+        
+        // Fetch the full user wine entry with wine details for immediate UI update
+        const fullUserWine = await prisma.userWine.findUnique({
+          where: { id: triedResult.id },
+          include: {
+            wine: {
+              include: {
+                _count: {
+                  select: { reviews: true, userWines: true }
+                },
+                reviews: {
+                  select: { rating: true }
+                }
+              }
+            }
+          }
+        })
+        
+        // Calculate average rating for the wine
+        const averageRating = fullUserWine?.wine.reviews.length 
+          ? fullUserWine.wine.reviews.reduce((acc, review) => acc + review.rating, 0) / fullUserWine.wine.reviews.length
+          : 0
+        
+        // Return the full entry for immediate UI update
         return NextResponse.json({ 
           success: true, 
           wineId: wine.id,
-          addedToCellar: addToCellar || false,
+          addedToCellar: false,
           status: status,
-          triedEntry: triedResult
+          triedEntry: triedResult,
+          userWine: fullUserWine ? {
+            ...fullUserWine,
+            wine: {
+              ...fullUserWine.wine,
+              averageRating,
+              source: 'local' as const
+            },
+            userReview: null
+          } : null
         })
       } catch (triedError) {
         console.error('Error in addWineToTried:', triedError)
@@ -115,17 +162,48 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // For other statuses, use upsert to update existing entry
-      await addWineToCollection(session.user.id, wine.id, status)
+      await addWineToCollection(session.user.id, wine.id, status, addedAt)
     }
 
-    // Return success with details about what was added
+    // Fetch the full user wine entry with wine details for immediate UI update
+    const userWineEntry = cellarResult ? await prisma.userWine.findUnique({
+      where: { id: cellarResult.id },
+      include: {
+        wine: {
+          include: {
+            _count: {
+              select: { reviews: true, userWines: true }
+            },
+            reviews: {
+              select: { rating: true }
+            }
+          }
+        }
+      }
+    }) : null
+    
+    // Calculate average rating for the wine
+    const averageRating = userWineEntry?.wine.reviews.length 
+      ? userWineEntry.wine.reviews.reduce((acc, review) => acc + review.rating, 0) / userWineEntry.wine.reviews.length
+      : 0
+
+    // Return success with full wine data for immediate UI update
     return NextResponse.json({ 
       success: true, 
       wineId: wine.id,
       addedToCellar: addToCellar || false,
       status: addToCellar ? 'WANT_TO_TRY' : status,
       quantity: cellarResult?.quantity,
-      inCellar: cellarResult?.inCellar
+      inCellar: cellarResult?.inCellar,
+      userWine: userWineEntry ? {
+        ...userWineEntry,
+        wine: {
+          ...userWineEntry.wine,
+          averageRating,
+          source: 'local' as const
+        },
+        userReview: null
+      } : null
     })
   } catch (error) {
     console.error('Failed to add wine to collection:', error)

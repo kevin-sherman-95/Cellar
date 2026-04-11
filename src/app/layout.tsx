@@ -6,7 +6,6 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import AuthButton from '@/components/navigation/AuthButton'
 import BrowseDropdown from '@/components/navigation/BrowseDropdown'
 import SearchBar from '@/components/navigation/SearchBar'
-import ThemeToggle from '@/components/ui/ThemeToggle'
 
 export const metadata: Metadata = {
   title: 'Cellar - Your Personal Wine Sanctuary | Wine Social Platform',
@@ -59,13 +58,11 @@ export default function RootLayout({
                   {/* Desktop Right Side */}
                   <div className="hidden md:flex items-center space-x-4">
                     <AuthButton />
-                    <ThemeToggle />
                   </div>
                   
                   {/* Mobile menu */}
                   <div className="md:hidden flex items-center space-x-2">
                     <AuthButton />
-                    <ThemeToggle />
                   </div>
                 </div>
               </nav>

@@ -231,14 +231,24 @@ function buildSearchQueries(
   return Array.from(new Set(queries.filter(q => q.trim().length > 0)))
 }
 
+const VIVINO_REQUEST_DELAY_MS = 1000
+let lastVivinoRequestTime = 0
+
 /**
- * Fetch HTML from Vivino search
+ * Fetch HTML from Vivino search with rate-limit awareness.
+ * Spaces requests by at least 1 second and retries once on 429.
  */
 async function fetchVivinoSearch(query: string): Promise<string | null> {
   const searchUrl = `https://www.vivino.com/search/wines?q=${encodeURIComponent(query)}`
-  
-  try {
-    const response = await fetch(searchUrl, {
+
+  const elapsed = Date.now() - lastVivinoRequestTime
+  if (elapsed < VIVINO_REQUEST_DELAY_MS) {
+    await new Promise(resolve => setTimeout(resolve, VIVINO_REQUEST_DELAY_MS - elapsed))
+  }
+
+  const doFetch = async (): Promise<Response> => {
+    lastVivinoRequestTime = Date.now()
+    return fetch(searchUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -246,8 +256,18 @@ async function fetchVivinoSearch(query: string): Promise<string | null> {
         'Referer': 'https://www.vivino.com/',
         'Cache-Control': 'no-cache',
       },
-      next: { revalidate: 86400 } // Cache for 24 hours
+      next: { revalidate: 86400 },
     })
+  }
+
+  try {
+    let response = await doFetch()
+
+    if (response.status === 429) {
+      console.log('  ⚠️  Vivino 429 rate limit — waiting 3s and retrying once')
+      await new Promise(resolve => setTimeout(resolve, 3000))
+      response = await doFetch()
+    }
 
     if (!response.ok) {
       console.log(`  ⚠️  Vivino returned status ${response.status}`)

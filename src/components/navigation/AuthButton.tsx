@@ -3,9 +3,11 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import { useTheme } from '@/components/providers/ThemeProvider'
 
 export default function AuthButton() {
   const { data: session, status } = useSession()
+  const { theme, setTheme } = useTheme()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -72,6 +74,14 @@ export default function AuthButton() {
             >
               Settings
             </Link>
+            <hr className="my-1 dark:border-gray-700" />
+            <button
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              className="flex items-center justify-between w-full px-4 py-2 text-sm text-cellar-700 dark:text-gray-200 hover:bg-cellar-50 dark:hover:bg-gray-700"
+            >
+              <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+              <span className="text-base">{theme === 'light' ? '🌙' : '☀️'}</span>
+            </button>
             <hr className="my-1 dark:border-gray-700" />
             <button
               onClick={() => {

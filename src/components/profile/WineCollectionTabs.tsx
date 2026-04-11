@@ -17,11 +17,19 @@ interface WineCollectionTabsProps {
   userWines: (UserWineWithDetails | UserWineWithReview)[]
   isOwnProfile?: boolean
   onWinesChange?: (wines: (UserWineWithDetails | UserWineWithReview)[]) => void
+  defaultTab?: string
+  defaultTabKey?: number
 }
 
-export default function WineCollectionTabs({ userWines: initialUserWines, isOwnProfile = false, onWinesChange }: WineCollectionTabsProps) {
+export default function WineCollectionTabs({ userWines: initialUserWines, isOwnProfile = false, onWinesChange, defaultTab, defaultTabKey }: WineCollectionTabsProps) {
   const { data: session } = useSession()
-  const [activeTab, setActiveTab] = useState<string>('MY_CELLAR')
+  const [activeTab, setActiveTab] = useState<string>(defaultTab || 'MY_CELLAR')
+
+  useEffect(() => {
+    if (defaultTab) {
+      setActiveTab(defaultTab)
+    }
+  }, [defaultTab, defaultTabKey])
   const [ratingStates, setRatingStates] = useState<Record<string, number>>({})
   const [localUserWines, setLocalUserWinesInternal] = useState(initialUserWines)
   
@@ -47,8 +55,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
       wine => !deletedWineIdsRef.current.has(wine.id)
     )
     setLocalUserWinesInternal(filteredWines)
-    // Also notify parent to keep stats in sync
-    if (onWinesChange) {
+    if (onWinesChange && filteredWines.length !== initialUserWines.length) {
       onWinesChange(filteredWines)
     }
   }, [initialUserWines, onWinesChange])
@@ -653,6 +660,8 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
         return a.wine.region.localeCompare(b.wine.region)
       case 'quantity':
         return (b.quantity || 0) - (a.quantity || 0)
+      case 'dateAddedAsc':
+        return new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime()
       case 'dateAdded':
       default:
         return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime()
@@ -708,21 +717,31 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     }
   }, [sortedWines, wineImages]) // Run when wines or images change
 
-  const sortOptions = [
-    { value: 'dateAdded', label: 'Date Added (Newest)' },
-    { value: 'name', label: 'Name (A-Z)' },
-    { value: 'nameDesc', label: 'Name (Z-A)' },
-    { value: 'vintage', label: 'Vintage (Newest)' },
-    { value: 'vintageAsc', label: 'Vintage (Oldest)' },
-    { value: 'rating', label: 'Rating (Highest)' },
-    { value: 'ratingAsc', label: 'Rating (Lowest)' },
-    { value: 'vineyard', label: 'Vineyard (A-Z)' },
-    { value: 'region', label: 'Region (A-Z)' },
-    ...(activeTab === 'MY_CELLAR' ? [{ value: 'quantity', label: 'Quantity (Most)' }] : []),
+  const sortOptions: { value: string; altValue: string | null; label: string; dirLabel: string; altDirLabel: string }[] = [
+    { value: 'dateAdded', altValue: 'dateAddedAsc', label: 'Date Added', dirLabel: 'Newest', altDirLabel: 'Oldest' },
+    { value: 'name', altValue: 'nameDesc', label: 'Name', dirLabel: 'A-Z', altDirLabel: 'Z-A' },
+    { value: 'vintage', altValue: 'vintageAsc', label: 'Vintage', dirLabel: 'Newest', altDirLabel: 'Oldest' },
+    { value: 'rating', altValue: 'ratingAsc', label: 'Rating', dirLabel: 'Highest', altDirLabel: 'Lowest' },
+    { value: 'vineyard', altValue: null, label: 'Vineyard', dirLabel: 'A-Z', altDirLabel: '' },
+    { value: 'region', altValue: null, label: 'Region', dirLabel: 'A-Z', altDirLabel: '' },
+    ...(activeTab === 'MY_CELLAR' ? [{ value: 'quantity', altValue: null as string | null, label: 'Quantity', dirLabel: 'Most', altDirLabel: '' }] : []),
   ]
 
-  const getSortLabel = (value: string) => {
-    return sortOptions.find(opt => opt.value === value)?.label || 'Sort By'
+  const isAltSort = (option: typeof sortOptions[number]) => {
+    return option.altValue != null && sortBy === option.altValue
+  }
+
+  const isSortActive = (option: typeof sortOptions[number]) => {
+    return sortBy === option.value || (option.altValue != null && sortBy === option.altValue)
+  }
+
+  const handleSortClick = (option: typeof sortOptions[number]) => {
+    if (isSortActive(option) && option.altValue != null) {
+      setSortBy(sortBy === option.value ? option.altValue : option.value)
+    } else {
+      setSortBy(option.value)
+    }
+    setSortDropdownOpen(false)
   }
 
   return (
@@ -963,22 +982,35 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                     />
                     <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-cellar-200 dark:border-gray-700 z-20">
                       <div className="py-1">
-                        {sortOptions.map((option) => (
-                          <button
-                            key={option.value}
-                            onClick={() => {
-                              setSortBy(option.value)
-                              setSortDropdownOpen(false)
-                            }}
-                            className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                              sortBy === option.value
-                                ? 'bg-wine-50 dark:bg-wine-900/30 text-wine-600 dark:text-wine-400 font-medium'
-                                : 'text-cellar-700 dark:text-gray-300 hover:bg-cellar-50 dark:hover:bg-gray-700'
-                            }`}
-                          >
-                            {option.label}
-                          </button>
-                        ))}
+                        {sortOptions.map((option) => {
+                          const active = isSortActive(option)
+                          const alt = isAltSort(option)
+                          const currentDirLabel = alt ? option.altDirLabel : option.dirLabel
+
+                          return (
+                            <button
+                              key={option.value}
+                              onClick={() => handleSortClick(option)}
+                              className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center justify-between ${
+                                active
+                                  ? 'bg-wine-50 dark:bg-wine-900/30 text-wine-600 dark:text-wine-400 font-medium'
+                                  : 'text-cellar-700 dark:text-gray-300 hover:bg-cellar-50 dark:hover:bg-gray-700'
+                              }`}
+                            >
+                              <span>{option.label}</span>
+                              {active && (
+                                <span className="flex items-center gap-1 text-xs opacity-75">
+                                  <span>{currentDirLabel}</span>
+                                  {option.altValue != null && (
+                                    <svg className={`w-3 h-3 transition-transform ${alt ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                    </svg>
+                                  )}
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
                   </>
@@ -1076,7 +1108,6 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                             alt={`${userWine.wine.name} bottle`}
                             className="w-full h-full object-contain p-1"
                             onError={(e) => {
-                              // Fallback to a simple SVG if image fails to load
                               const target = e.target as HTMLImageElement
                               target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjY0IiBmaWxsPSIjODU2NjQ0Ii8+PHBhdGggZD0iTTEwIDVIMzZWMjBIMTBaIiBmaWxsPSIjNjY0NDIyIi8+PHBhdGggZD0iTTEyIDhIMzRWMThIMTJaIiBmaWxsPSIjZmZmIi8+PC9zdmc+'
                             }}
@@ -1245,11 +1276,12 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                   updatingQuantity={updatingQuantity === userWine.wine.id}
                   isOwnProfile={activeTab === 'MY_CELLAR' && isOwnProfile}
                   testLayout={activeTab === 'MY_CELLAR' && isOwnProfile}
+                  addedAt={userWine.addedAt}
                   alignRatingBottom={activeTab === 'MY_CELLAR' && isOwnProfile}
                 />
                 
                 {/* Collection Badge */}
-                <div className="absolute top-2 left-2 px-2 py-1 rounded-md text-xs font-medium text-white shadow-lg">
+                <div className="absolute top-2 left-2 px-2 py-1 rounded-md text-xs font-medium text-white shadow-lg pointer-events-none">
                   <div className={`px-2 py-1 rounded-md flex items-center gap-1 ${
                     activeTab === 'MY_CELLAR' ? 'bg-purple-600' : 'bg-green-600'
                   }`}>

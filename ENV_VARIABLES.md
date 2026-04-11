@@ -25,6 +25,19 @@ https://your-app-name.vercel.app
 ```
 **What it is:** Your Vercel deployment URL (replace `your-app-name` with your actual project name)
 
+### 4. SERPAPI_API_KEY *(optional — wine bottle image search)*
+```
+your-serpapi-key
+```
+**Where to get it:**
+- Sign up at [SerpAPI](https://serpapi.com) (Google account works, no credit card required)
+- Free tier: 100 searches/month
+- Copy the API key from your [dashboard](https://serpapi.com/manage-api-key)
+
+> When the key is set the app will automatically search Google Images (via
+> SerpAPI) for bottle photos whenever a wine is added. Results are
+> confidence-scored and only high-quality matches are saved.
+
 ---
 
 ## Setup Steps Summary
@@ -74,5 +87,7 @@ https://your-app-name.vercel.app
 - Double-check NEXTAUTH_SECRET is set
 - Verify NEXTAUTH_URL has no trailing slash
 - Check browser console for errors
+
+
 
 

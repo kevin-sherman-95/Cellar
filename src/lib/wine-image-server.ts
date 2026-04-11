@@ -7,13 +7,16 @@
  * Priority order:
  * 1. Manual overrides (data/wine-image-overrides.json)
  * 2. Vivino scraping (actual product images)
- * 3. Unsplash API (aesthetic wine photos as fallback)
- * 4. Varietal-based placeholders
+ * 3. Google Image Search (confidence-scored product images)
+ * 4. Unsplash API (aesthetic wine photos as fallback)
+ * 5. Varietal-based placeholders
  */
 
 import { getWineBottlePlaceholder } from './wine-image-utils'
 import { findWineImageMapping } from './wine-image-mapping'
 import { getVivinoWineImage } from './vivino-image-fetcher'
+import { searchGoogleForWineImage } from './google-image-search'
+import { prisma } from './db'
 
 // Unsplash search queries optimized for wine images
 // These are tailored to return high-quality wine bottle photos
@@ -124,8 +127,9 @@ async function searchUnsplash(
  * Tries sources in order:
  * 1. Manual overrides
  * 2. Vivino scraping
- * 3. Unsplash API
- * 4. Varietal placeholders
+ * 3. Google Image Search (confidence-scored)
+ * 4. Unsplash API
+ * 5. Varietal placeholders
  */
 export async function getWineBottleImage(
   wineName: string,
@@ -150,8 +154,15 @@ export async function getWineBottleImage(
       console.log(`✅ Found Vivino image for: ${wineDesc}`)
       return vivinoImage
     }
+
+    // 3. Try Google Image Search (confidence-scored product images)
+    const googleImage = await searchGoogleForWineImage(wineName, vineyard, varietal, vintage)
+    if (googleImage) {
+      console.log(`✅ Found Google image for: ${wineDesc}`)
+      return googleImage
+    }
     
-    // 3. Try Unsplash API (aesthetic fallback)
+    // 4. Try Unsplash API (aesthetic fallback)
     const unsplashAccessKey = process.env.UNSPLASH_ACCESS_KEY
     
     if (unsplashAccessKey) {
@@ -185,12 +196,54 @@ export async function getWineBottleImage(
       console.log(`⚠️  Unsplash API key not configured, using placeholder`)
     }
     
-    // 4. Fall back to placeholder
+    // 5. Fall back to placeholder
     console.log(`📷 Using varietal placeholder for: ${wineDesc}`)
     return getWineBottlePlaceholder(varietal)
     
   } catch (error) {
     console.error('Error fetching wine bottle image:', error)
     return getWineBottlePlaceholder(varietal)
+  }
+}
+
+const DEFAULT_PLACEHOLDER = 'fallback_1.png'
+
+/**
+ * Run the full image resolution pipeline for a wine and persist the result.
+ * Intended to be called fire-and-forget so the caller is not blocked.
+ */
+export async function resolveAndCacheWineImage(wine: {
+  id: string
+  name: string
+  vineyard: string
+  varietal: string
+  vintage: number | null
+  image: string | null
+}): Promise<void> {
+  try {
+    const imageUrl = await getWineBottleImage(
+      wine.name,
+      wine.vineyard,
+      wine.varietal,
+      wine.vintage,
+    )
+
+    if (!imageUrl) return
+
+    const isPlaceholder =
+      imageUrl.includes(DEFAULT_PLACEHOLDER) ||
+      imageUrl.includes('photo-1510812431401') ||
+      imageUrl.includes('photo-1553361371') ||
+      imageUrl.includes('photo-1513475382585')
+
+    if (isPlaceholder) return
+
+    await prisma.wine.update({
+      where: { id: wine.id },
+      data: { image: imageUrl },
+    })
+    console.log(`✅ Cached resolved image for: ${wine.name} from ${wine.vineyard}`)
+  } catch (err) {
+    console.error(`Background image resolution failed for wine ${wine.id}:`, err)
   }
 }
