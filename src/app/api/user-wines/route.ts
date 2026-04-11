@@ -89,6 +89,8 @@ export async function POST(request: NextRequest) {
         varietal: wine.varietal,
         vintage: wine.vintage,
         image: wine.image,
+        region: wine.region,
+        country: wine.country,
       }).catch(err => console.error('Background image fetch failed:', err))
     }
 

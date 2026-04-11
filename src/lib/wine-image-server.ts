@@ -135,7 +135,9 @@ export async function getWineBottleImage(
   wineName: string,
   vineyard?: string | null,
   varietal?: string | null,
-  vintage?: number | null
+  vintage?: number | null,
+  region?: string | null,
+  country?: string | null,
 ): Promise<string | null> {
   const wineDesc = `${vineyard || ''} ${wineName} ${vintage || ''}`.trim()
   
@@ -149,14 +151,14 @@ export async function getWineBottleImage(
     
     // 2. Try Vivino (best source for actual product images)
     console.log(`🍷 Searching Vivino for: ${wineDesc}`)
-    const vivinoImage = await getVivinoWineImage(wineName, vineyard, vintage)
+    const vivinoImage = await getVivinoWineImage(wineName, vineyard, vintage, varietal, region, country)
     if (vivinoImage) {
       console.log(`✅ Found Vivino image for: ${wineDesc}`)
       return vivinoImage
     }
 
     // 3. Try Google Image Search (confidence-scored product images)
-    const googleImage = await searchGoogleForWineImage(wineName, vineyard, varietal, vintage)
+    const googleImage = await searchGoogleForWineImage(wineName, vineyard, varietal, vintage, region, country)
     if (googleImage) {
       console.log(`✅ Found Google image for: ${wineDesc}`)
       return googleImage
@@ -219,6 +221,8 @@ export async function resolveAndCacheWineImage(wine: {
   varietal: string
   vintage: number | null
   image: string | null
+  region?: string | null
+  country?: string | null
 }): Promise<void> {
   try {
     const imageUrl = await getWineBottleImage(
@@ -226,6 +230,8 @@ export async function resolveAndCacheWineImage(wine: {
       wine.vineyard,
       wine.varietal,
       wine.vintage,
+      wine.region,
+      wine.country,
     )
 
     if (!imageUrl) return

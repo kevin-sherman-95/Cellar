@@ -195,12 +195,17 @@ function extractFromJsonLd(html: string): string[] {
 }
 
 /**
- * Build search queries with different strategies
+ * Build search queries with different strategies.
+ * Uses all available wine metadata (vineyard, vintage, varietal, region,
+ * country) to maximise the chance of finding the correct bottle image.
  */
 function buildSearchQueries(
   wineName: string,
   vineyard?: string | null,
-  vintage?: number | null
+  vintage?: number | null,
+  varietal?: string | null,
+  region?: string | null,
+  country?: string | null,
 ): string[] {
   const queries: string[] = []
   
@@ -208,21 +213,34 @@ function buildSearchQueries(
   if (vineyard && vintage) {
     queries.push(`${vineyard} ${wineName} ${vintage}`)
   }
+
+  // Strategy 2: Vineyard + wine name + varietal (helps disambiguate generic names)
+  if (vineyard && varietal) {
+    queries.push(`${vineyard} ${wineName} ${varietal}`)
+  }
   
-  // Strategy 2: Vineyard + wine name (no vintage)
+  // Strategy 3: Vineyard + wine name (no vintage)
   if (vineyard) {
     queries.push(`${vineyard} ${wineName}`)
   }
+
+  // Strategy 4: Include region/country for extra specificity
+  if (vineyard && region) {
+    queries.push(`${vineyard} ${wineName} ${region}`)
+  }
+  if (vineyard && country) {
+    queries.push(`${vineyard} ${wineName} ${country}`)
+  }
   
-  // Strategy 3: Wine name + vintage
+  // Strategy 5: Wine name + vintage
   if (vintage) {
     queries.push(`${wineName} ${vintage}`)
   }
   
-  // Strategy 4: Just wine name
+  // Strategy 6: Just wine name
   queries.push(wineName)
   
-  // Strategy 5: Just vineyard (for winery-specific wines)
+  // Strategy 7: Just vineyard (for winery-specific wines)
   if (vineyard && vineyard.toLowerCase() !== wineName.toLowerCase()) {
     queries.push(vineyard)
   }
@@ -293,9 +311,12 @@ async function fetchVivinoSearch(query: string): Promise<string | null> {
 export async function fetchWineImageFromVivino(
   wineName: string,
   vineyard?: string | null,
-  vintage?: number | null
+  vintage?: number | null,
+  varietal?: string | null,
+  region?: string | null,
+  country?: string | null,
 ): Promise<string | null> {
-  const searchQueries = buildSearchQueries(wineName, vineyard, vintage)
+  const searchQueries = buildSearchQueries(wineName, vineyard, vintage, varietal, region, country)
   
   console.log(`🔍 Vivino search for: "${vineyard || ''} ${wineName} ${vintage || ''}"`.trim())
   console.log(`   Trying ${searchQueries.length} search strategies...`)
@@ -342,10 +363,13 @@ export async function fetchWineImageFromVivino(
 export async function getVivinoWineImage(
   wineName: string,
   vineyard?: string | null,
-  vintage?: number | null
+  vintage?: number | null,
+  varietal?: string | null,
+  region?: string | null,
+  country?: string | null,
 ): Promise<string | null> {
   try {
-    return await fetchWineImageFromVivino(wineName, vineyard, vintage)
+    return await fetchWineImageFromVivino(wineName, vineyard, vintage, varietal, region, country)
   } catch (error) {
     console.error('Error in getVivinoWineImage:', error)
     return null

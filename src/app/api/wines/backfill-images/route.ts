@@ -49,6 +49,8 @@ async function backfillImages() {
         varietal: wine.varietal,
         vintage: wine.vintage,
         image: wine.image,
+        region: wine.region,
+        country: wine.country,
       })
 
       const after = await prisma.wine.findUnique({

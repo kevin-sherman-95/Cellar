@@ -62,6 +62,8 @@ function buildSearchQueries(
   vineyard?: string | null,
   varietal?: string | null,
   vintage?: number | null,
+  region?: string | null,
+  country?: string | null,
 ): string[] {
   const queries: string[] = []
 
@@ -81,6 +83,14 @@ function buildSearchQueries(
 
   if (varietal && vineyard) {
     queries.push(`${vineyard} ${varietal} wine bottle`)
+  }
+
+  if (vineyard && country) {
+    queries.push(`${vineyard} ${wineName} ${country} wine bottle`)
+  }
+
+  if (vineyard && region) {
+    queries.push(`${vineyard} ${wineName} ${region} wine bottle`)
   }
 
   return [...new Set(queries)]
@@ -166,6 +176,8 @@ export async function searchGoogleForWineImage(
   vineyard?: string | null,
   varietal?: string | null,
   vintage?: number | null,
+  region?: string | null,
+  country?: string | null,
 ): Promise<string | null> {
   const apiKey = process.env.SERPAPI_API_KEY
 
@@ -174,7 +186,7 @@ export async function searchGoogleForWineImage(
     return null
   }
 
-  const queries = buildSearchQueries(wineName, vineyard, varietal, vintage)
+  const queries = buildSearchQueries(wineName, vineyard, varietal, vintage, region, country)
   const wineDesc = `${vineyard || ''} ${wineName} ${vintage || ''}`.trim()
   console.log(`🔎 SerpAPI Image Search for: "${wineDesc}" (${queries.length} queries)`)
 

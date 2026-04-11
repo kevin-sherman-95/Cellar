@@ -126,7 +126,7 @@ function progressBar(current: number, total: number, width = 30): string {
 }
 
 async function fetchWineImage(
-  wine: { id: string; name: string; vineyard: string; vintage: number | null; image: string | null },
+  wine: { id: string; name: string; vineyard: string; vintage: number | null; image: string | null; varietal: string; region: string; country: string },
   options: Options
 ): Promise<FetchResult> {
   const wineDesc = `${wine.vineyard} ${wine.name}${wine.vintage ? ` ${wine.vintage}` : ''}`
@@ -174,7 +174,7 @@ async function fetchWineImage(
   }
   
   try {
-    const imageUrl = await getVivinoWineImage(wine.name, wine.vineyard, wine.vintage)
+    const imageUrl = await getVivinoWineImage(wine.name, wine.vineyard, wine.vintage, wine.varietal, wine.region, wine.country)
     
     if (imageUrl) {
       await prisma.wine.update({
@@ -253,6 +253,9 @@ async function main(): Promise<void> {
       id: true,
       name: true,
       vineyard: true,
+      varietal: true,
+      region: true,
+      country: true,
       vintage: true,
       image: true,
     },
