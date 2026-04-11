@@ -21,9 +21,10 @@ interface WineCollectionTabsProps {
   defaultTabKey?: number
   defaultVarietal?: string | null
   defaultVarietalKey?: number
+  searchQuery?: string
 }
 
-export default function WineCollectionTabs({ userWines: initialUserWines, isOwnProfile = false, onWinesChange, defaultTab, defaultTabKey, defaultVarietal, defaultVarietalKey }: WineCollectionTabsProps) {
+export default function WineCollectionTabs({ userWines: initialUserWines, isOwnProfile = false, onWinesChange, defaultTab, defaultTabKey, defaultVarietal, defaultVarietalKey, searchQuery = '' }: WineCollectionTabsProps) {
   const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState<string>(defaultTab || 'MY_CELLAR')
   const [notesModalWineId, setNotesModalWineId] = useState<string | null>(null)
@@ -593,22 +594,33 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     },
   ]
 
-  const filteredWines = useMemo(() => localUserWines.filter(userWine => {
-    let matchesTab = false
-    if (activeTab === 'MY_CELLAR') {
-      matchesTab = userWine.inCellar === true
-    } else {
-      matchesTab = userWine.status === activeTab
-    }
-    
-    const matchesVarietal = !filterVarietal || userWine.wine.varietal === filterVarietal
-    const wineType = getWineType(userWine.wine.varietal)
-    const matchesWineType = !filterWineType || wineType === filterWineType
-    const matchesRegion = !filterRegion || userWine.wine.region === filterRegion
-    const matchesVineyard = !filterVineyard || userWine.wine.vineyard === filterVineyard
-    
-    return matchesTab && matchesVarietal && matchesWineType && matchesRegion && matchesVineyard
-  }), [localUserWines, activeTab, filterVarietal, filterWineType, filterRegion, filterVineyard])
+  const filteredWines = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim()
+    return localUserWines.filter(userWine => {
+      let matchesTab = false
+      if (activeTab === 'MY_CELLAR') {
+        matchesTab = userWine.inCellar === true
+      } else {
+        matchesTab = userWine.status === activeTab
+      }
+
+      const matchesVarietal = !filterVarietal || userWine.wine.varietal === filterVarietal
+      const wineType = getWineType(userWine.wine.varietal)
+      const matchesWineType = !filterWineType || wineType === filterWineType
+      const matchesRegion = !filterRegion || userWine.wine.region === filterRegion
+      const matchesVineyard = !filterVineyard || userWine.wine.vineyard === filterVineyard
+
+      const matchesSearch = !query || [
+        userWine.wine.name,
+        userWine.wine.vineyard,
+        userWine.wine.varietal,
+        userWine.wine.region,
+        userWine.wine.country,
+      ].some(field => field?.toLowerCase().includes(query))
+
+      return matchesTab && matchesVarietal && matchesWineType && matchesRegion && matchesVineyard && matchesSearch
+    })
+  }, [localUserWines, activeTab, filterVarietal, filterWineType, filterRegion, filterVineyard, searchQuery])
 
   const { availableVarietals, availableRegions, availableVineyards } = useMemo(() => {
     const tabWines = localUserWines.filter(userWine => {
