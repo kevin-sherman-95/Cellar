@@ -33,6 +33,8 @@ export async function GET(
         varietal: true,
         vintage: true,
         image: true,
+        region: true,
+        country: true,
       }
     })
 
@@ -69,7 +71,7 @@ export async function GET(
 
     // Try fetching from Vivino first (best source for wine bottle images)
     console.log(`🍷 Fetching image from Vivino for: ${wine.name} from ${wine.vineyard}`)
-    const vivinoImage = await getVivinoWineImage(wine.name, wine.vineyard, wine.vintage)
+    const vivinoImage = await getVivinoWineImage(wine.name, wine.vineyard, wine.vintage, wine.varietal, wine.region, wine.country)
     if (vivinoImage) {
       // Cache the Vivino image to database
       try {
@@ -90,7 +92,7 @@ export async function GET(
 
     // Try Google Image Search (confidence-scored product images)
     console.log(`🔎 Trying Google Image Search for: ${wine.name} from ${wine.vineyard}`)
-    const googleImage = await searchGoogleForWineImage(wine.name, wine.vineyard, wine.varietal, wine.vintage)
+    const googleImage = await searchGoogleForWineImage(wine.name, wine.vineyard, wine.varietal, wine.vintage, wine.region, wine.country)
     if (googleImage) {
       try {
         await prisma.wine.update({
@@ -114,7 +116,9 @@ export async function GET(
       wine.name,
       wine.vineyard,
       wine.varietal,
-      wine.vintage
+      wine.vintage,
+      wine.region,
+      wine.country,
     )
 
     if (imageUrl) {
