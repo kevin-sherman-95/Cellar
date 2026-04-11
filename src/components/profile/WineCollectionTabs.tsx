@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 // UserWineStatus values as strings
@@ -585,85 +585,59 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     },
   ]
 
-  const filteredWines = localUserWines.filter(userWine => {
-    // Filter by tab
+  const filteredWines = useMemo(() => localUserWines.filter(userWine => {
     let matchesTab = false
     if (activeTab === 'MY_CELLAR') {
-      // My Cellar shows all wines in cellar, regardless of status
-      // Cellar and TRIED are separate - you can have wines in cellar without them being TRIED
       matchesTab = userWine.inCellar === true
     } else {
       matchesTab = userWine.status === activeTab
     }
     
-    // Filter by varietal if selected
     const matchesVarietal = !filterVarietal || userWine.wine.varietal === filterVarietal
-    
-    // Filter by wine type (red/white) if selected
     const wineType = getWineType(userWine.wine.varietal)
     const matchesWineType = !filterWineType || wineType === filterWineType
-
-    // Filter by region if selected
     const matchesRegion = !filterRegion || userWine.wine.region === filterRegion
-
-    // Filter by vineyard if selected
     const matchesVineyard = !filterVineyard || userWine.wine.vineyard === filterVineyard
     
     return matchesTab && matchesVarietal && matchesWineType && matchesRegion && matchesVineyard
-  })
+  }), [localUserWines, activeTab, filterVarietal, filterWineType, filterRegion, filterVineyard])
 
-  // Get unique varietals from wines in current tab (before varietal filter)
-  const tabFilteredWines = localUserWines.filter(userWine => {
-    if (activeTab === 'MY_CELLAR') {
-      // My Cellar shows all wines in cellar, regardless of status
-      return userWine.inCellar === true
+  const { availableVarietals, availableRegions, availableVineyards } = useMemo(() => {
+    const tabWines = localUserWines.filter(userWine => {
+      if (activeTab === 'MY_CELLAR') return userWine.inCellar === true
+      return userWine.status === activeTab
+    })
+    return {
+      availableVarietals: Array.from(new Set(tabWines.map(uw => uw.wine.varietal))).filter(Boolean).sort(),
+      availableRegions: Array.from(new Set(tabWines.map(uw => uw.wine.region))).filter(Boolean).sort(),
+      availableVineyards: Array.from(new Set(tabWines.map(uw => uw.wine.vineyard))).filter(Boolean).sort(),
     }
-    return userWine.status === activeTab
-  })
-  const availableVarietals = Array.from(new Set(tabFilteredWines.map(uw => uw.wine.varietal))).filter(Boolean).sort()
-  const availableRegions = Array.from(new Set(tabFilteredWines.map(uw => uw.wine.region))).filter(Boolean).sort()
-  const availableVineyards = Array.from(new Set(tabFilteredWines.map(uw => uw.wine.vineyard))).filter(Boolean).sort()
+  }, [localUserWines, activeTab])
 
-  // Sort filtered wines
-  const sortedWines = [...filteredWines].sort((a, b) => {
-    switch (sortBy) {
-      case 'name':
-        return a.wine.name.localeCompare(b.wine.name)
-      case 'nameDesc':
-        return b.wine.name.localeCompare(a.wine.name)
-      case 'vintage':
-        return (b.wine.vintage || 0) - (a.wine.vintage || 0)
-      case 'vintageAsc':
-        return (a.wine.vintage || 0) - (b.wine.vintage || 0)
-      case 'rating':
-        const ratingA = ratingStates[a.wine.id] !== undefined
-          ? ratingStates[a.wine.id]
-          : ('userReview' in a && a.userReview ? a.userReview.rating : a.wine.averageRating || 0)
-        const ratingB = ratingStates[b.wine.id] !== undefined
-          ? ratingStates[b.wine.id]
-          : ('userReview' in b && b.userReview ? b.userReview.rating : b.wine.averageRating || 0)
-        return ratingB - ratingA
-      case 'ratingAsc':
-        const ratingAAsc = ratingStates[a.wine.id] !== undefined
-          ? ratingStates[a.wine.id]
-          : ('userReview' in a && a.userReview ? a.userReview.rating : a.wine.averageRating || 0)
-        const ratingBAsc = ratingStates[b.wine.id] !== undefined
-          ? ratingStates[b.wine.id]
-          : ('userReview' in b && b.userReview ? b.userReview.rating : b.wine.averageRating || 0)
-        return ratingAAsc - ratingBAsc
-      case 'vineyard':
-        return a.wine.vineyard.localeCompare(b.wine.vineyard)
-      case 'region':
-        return a.wine.region.localeCompare(b.wine.region)
-      case 'quantity':
-        return (b.quantity || 0) - (a.quantity || 0)
-      case 'dateAddedAsc':
-        return new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime()
-      case 'dateAdded':
-      default:
-        return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime()
+  const sortedWines = useMemo(() => {
+    const getRating = (w: typeof filteredWines[number]) => {
+      if (ratingStates[w.wine.id] !== undefined) return ratingStates[w.wine.id]
+      if ('userReview' in w && w.userReview) return w.userReview.rating
+      return w.wine.averageRating || 0
     }
-  })
+
+    return [...filteredWines].sort((a, b) => {
+      switch (sortBy) {
+        case 'name': return a.wine.name.localeCompare(b.wine.name)
+        case 'nameDesc': return b.wine.name.localeCompare(a.wine.name)
+        case 'vintage': return (b.wine.vintage || 0) - (a.wine.vintage || 0)
+        case 'vintageAsc': return (a.wine.vintage || 0) - (b.wine.vintage || 0)
+        case 'rating': return getRating(b) - getRating(a)
+        case 'ratingAsc': return getRating(a) - getRating(b)
+        case 'vineyard': return a.wine.vineyard.localeCompare(b.wine.vineyard)
+        case 'region': return a.wine.region.localeCompare(b.wine.region)
+        case 'quantity': return (b.quantity || 0) - (a.quantity || 0)
+        case 'dateAddedAsc': return new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime()
+        case 'dateAdded':
+        default: return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime()
+      }
+    })
+  }, [filteredWines, sortBy, ratingStates])
 
   const getTabCount = (status: string) => {
     if (status === 'MY_CELLAR') {
@@ -687,35 +661,45 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     setFilterSubmenu(null)
   }, [activeTab])
 
-  // Fetch wine images dynamically for wines without images
-  useEffect(() => {
-    const fetchMissingImages = async () => {
-      const winesNeedingImages = sortedWines.filter(
-        uw => !uw.wine.image && !wineImages[uw.wine.id]
-      )
+  const fetchedImageIdsRef = useRef<Set<string>>(new Set())
 
-      for (const userWine of winesNeedingImages.slice(0, 10)) { // Limit to 10 at a time
+  // Stable list of wine IDs that need images (only changes when the actual wine list changes)
+  const wineIdsNeedingImages = useMemo(() => {
+    return localUserWines
+      .filter(uw => !uw.wine.image)
+      .map(uw => uw.wine.id)
+  }, [localUserWines])
+
+  useEffect(() => {
+    const idsToFetch = wineIdsNeedingImages.filter(
+      id => !wineImages[id] && !fetchedImageIdsRef.current.has(id)
+    ).slice(0, 10)
+
+    if (idsToFetch.length === 0) return
+
+    idsToFetch.forEach(id => fetchedImageIdsRef.current.add(id))
+
+    Promise.all(
+      idsToFetch.map(async (wineId) => {
         try {
-          const response = await fetch(`/api/wines/${userWine.wine.id}/image`)
+          const response = await fetch(`/api/wines/${wineId}/image`)
           if (response.ok) {
             const data = await response.json()
-            if (data.image) {
-              setWineImages(prev => ({
-                ...prev,
-                [userWine.wine.id]: data.image
-              }))
-            }
+            if (data.image) return { id: wineId, image: data.image as string }
           }
-        } catch (error) {
-          console.error(`Error fetching image for wine ${userWine.wine.id}:`, error)
-        }
+        } catch { /* skip failed fetches */ }
+        return null
+      })
+    ).then(results => {
+      const batch: Record<string, string> = {}
+      for (const r of results) {
+        if (r) batch[r.id] = r.image
       }
-    }
-
-    if (sortedWines.length > 0) {
-      fetchMissingImages()
-    }
-  }, [sortedWines, wineImages]) // Run when wines or images change
+      if (Object.keys(batch).length > 0) {
+        setWineImages(prev => ({ ...prev, ...batch }))
+      }
+    })
+  }, [wineIdsNeedingImages, wineImages])
 
   const sortOptions: { value: string; altValue: string | null; label: string; dirLabel: string; altDirLabel: string }[] = [
     { value: 'dateAdded', altValue: 'dateAddedAsc', label: 'Date Added', dirLabel: 'Newest', altDirLabel: 'Oldest' },
