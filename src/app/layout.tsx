@@ -84,7 +84,6 @@ export default function RootLayout({
                     <h3 className="text-2xl font-serif text-amber-200 dark:text-amber-300">Cellar</h3>
                   </div>
                   <p className="text-gray-200 dark:text-gray-300 text-lg">Drink. Judge. Regret. Repeat.</p>
-                  <p className="text-sm text-gray-300 dark:text-gray-400 mt-4">© 2024 Anysphere Inc. All rights reserved.</p>
                 </div>
               </div>
             </footer>
