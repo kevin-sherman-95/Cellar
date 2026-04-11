@@ -24,6 +24,11 @@ interface WineCollectionTabsProps {
 export default function WineCollectionTabs({ userWines: initialUserWines, isOwnProfile = false, onWinesChange, defaultTab, defaultTabKey }: WineCollectionTabsProps) {
   const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState<string>(defaultTab || 'MY_CELLAR')
+  const [notesModalWineId, setNotesModalWineId] = useState<string | null>(null)
+  const [notesPopoverPos, setNotesPopoverPos] = useState<{ top: number; left: number } | null>(null)
+  const [editingNotesText, setEditingNotesText] = useState<string>('')
+  const [originalNotesText, setOriginalNotesText] = useState<string>('')
+  const [savingNotes, setSavingNotes] = useState(false)
 
   useEffect(() => {
     if (defaultTab) {
@@ -70,6 +75,9 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
   const [filterVarietal, setFilterVarietal] = useState<string | null>(null)
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false)
   const [filterWineType, setFilterWineType] = useState<'red' | 'white' | null>(null)
+  const [filterRegion, setFilterRegion] = useState<string | null>(null)
+  const [filterVineyard, setFilterVineyard] = useState<string | null>(null)
+  const [filterSubmenu, setFilterSubmenu] = useState<'varietal' | 'region' | 'vineyard' | null>(null)
   const [wineImages, setWineImages] = useState<Record<string, string>>({})
   const [addingToTriedWineId, setAddingToTriedWineId] = useState<string | null>(null)
   const [editingDateId, setEditingDateId] = useState<string | null>(null)
@@ -594,8 +602,14 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     // Filter by wine type (red/white) if selected
     const wineType = getWineType(userWine.wine.varietal)
     const matchesWineType = !filterWineType || wineType === filterWineType
+
+    // Filter by region if selected
+    const matchesRegion = !filterRegion || userWine.wine.region === filterRegion
+
+    // Filter by vineyard if selected
+    const matchesVineyard = !filterVineyard || userWine.wine.vineyard === filterVineyard
     
-    return matchesTab && matchesVarietal && matchesWineType
+    return matchesTab && matchesVarietal && matchesWineType && matchesRegion && matchesVineyard
   })
 
   // Get unique varietals from wines in current tab (before varietal filter)
@@ -607,6 +621,8 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     return userWine.status === activeTab
   })
   const availableVarietals = Array.from(new Set(tabFilteredWines.map(uw => uw.wine.varietal))).filter(Boolean).sort()
+  const availableRegions = Array.from(new Set(tabFilteredWines.map(uw => uw.wine.region))).filter(Boolean).sort()
+  const availableVineyards = Array.from(new Set(tabFilteredWines.map(uw => uw.wine.vineyard))).filter(Boolean).sort()
 
   // Sort filtered wines
   const sortedWines = [...filteredWines].sort((a, b) => {
@@ -666,6 +682,9 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     setFilterDropdownOpen(false)
     setFilterVarietal(null)
     setFilterWineType(null)
+    setFilterRegion(null)
+    setFilterVineyard(null)
+    setFilterSubmenu(null)
   }, [activeTab])
 
   // Fetch wine images dynamically for wines without images
@@ -703,8 +722,6 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     { value: 'name', altValue: 'nameDesc', label: 'Name', dirLabel: 'A-Z', altDirLabel: 'Z-A' },
     { value: 'vintage', altValue: 'vintageAsc', label: 'Vintage', dirLabel: 'Newest', altDirLabel: 'Oldest' },
     { value: 'rating', altValue: 'ratingAsc', label: 'Rating', dirLabel: 'Highest', altDirLabel: 'Lowest' },
-    { value: 'vineyard', altValue: null, label: 'Vineyard', dirLabel: 'A-Z', altDirLabel: '' },
-    { value: 'region', altValue: null, label: 'Region', dirLabel: 'A-Z', altDirLabel: '' },
     ...(activeTab === 'MY_CELLAR' ? [{ value: 'quantity', altValue: null as string | null, label: 'Quantity', dirLabel: 'Most', altDirLabel: '' }] : []),
   ]
 
@@ -781,7 +798,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                   setSortDropdownOpen(false)
                 }}
                 className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border rounded-md transition-colors ${
-                  filterVarietal
+                  filterVarietal || filterRegion || filterVineyard || filterWineType
                     ? 'bg-wine-50 dark:bg-wine-900/30 text-wine-600 dark:text-wine-400 border-wine-300 dark:border-wine-700'
                     : 'text-cellar-700 dark:text-gray-300 hover:text-cellar-900 dark:hover:text-gray-100 border-cellar-300 dark:border-gray-600 hover:bg-cellar-50 dark:hover:bg-gray-700'
                 }`}
@@ -790,44 +807,35 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                     </svg>
                     <span>
-                      {filterWineType ? (
-                        <>
-                          {filterWineType === 'red' ? (
-                            <span className="inline-flex items-center">
-                              <img
-                                src="/icons/red-wine-glass.svg"
-                                alt="Red wine"
-                                className="w-4 h-4 mr-1"
-                              />
-                              <span>Red</span>
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center">
-                              <img
-                                src="/icons/white-wine-glass.svg"
-                                alt="White wine"
-                                className="w-4 h-4 mr-1"
-                              />
-                              <span>White</span>
-                            </span>
-                          )}
-                          {filterVarietal && ` • ${filterVarietal}`}
-                          <span className="ml-1 text-xs opacity-75">({filteredWines.length})</span>
-                        </>
-                      ) : filterVarietal ? (
-                        <>
-                          {filterVarietal}
-                          <span className="ml-1 text-xs opacity-75">({filteredWines.length})</span>
-                        </>
-                      ) : (
-                        'Filter'
-                      )}
+                      {(() => {
+                        const parts: string[] = []
+                        if (filterWineType) parts.push(filterWineType === 'red' ? 'Red' : 'White')
+                        if (filterVarietal) parts.push(filterVarietal)
+                        if (filterRegion) parts.push(filterRegion)
+                        if (filterVineyard) parts.push(filterVineyard)
+                        if (parts.length === 0) return 'Filter'
+                        return (
+                          <>
+                            {filterWineType === 'red' && (
+                              <img src="/icons/red-wine-glass.svg" alt="Red wine" className="w-4 h-4 mr-1 inline" />
+                            )}
+                            {filterWineType === 'white' && (
+                              <img src="/icons/white-wine-glass.svg" alt="White wine" className="w-4 h-4 mr-1 inline" />
+                            )}
+                            {parts.join(' • ')}
+                            <span className="ml-1 text-xs opacity-75">({filteredWines.length})</span>
+                          </>
+                        )
+                      })()}
                     </span>
-                    {filterVarietal && (
+                    {(filterVarietal || filterRegion || filterVineyard || filterWineType) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           setFilterVarietal(null)
+                          setFilterRegion(null)
+                          setFilterVineyard(null)
+                          setFilterWineType(null)
                           setFilterDropdownOpen(false)
                         }}
                         className="ml-1 hover:bg-wine-100 dark:hover:bg-wine-800 rounded-full p-0.5"
@@ -847,89 +855,237 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                     <>
                       <div 
                         className="fixed inset-0 z-10" 
-                        onClick={() => setFilterDropdownOpen(false)}
+                        onClick={() => { setFilterDropdownOpen(false); setFilterSubmenu(null) }}
                       />
-                      <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-cellar-200 dark:border-gray-700 z-20 max-h-64 overflow-y-auto">
+                      <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-cellar-200 dark:border-gray-700 z-20 max-h-72 overflow-y-auto">
                         <div className="py-1">
-                          {/* Red/White Filter Options */}
-                          <button
-                            onClick={() => {
-                              setFilterWineType(null)
-                              setFilterVarietal(null)
-                              setFilterDropdownOpen(false)
-                            }}
-                            className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                              !filterWineType && !filterVarietal
-                                ? 'bg-wine-50 dark:bg-wine-900/30 text-wine-600 dark:text-wine-400 font-medium'
-                                : 'text-cellar-700 dark:text-gray-300 hover:bg-cellar-50 dark:hover:bg-gray-700'
-                            }`}
-                          >
-                            All Wines
-                          </button>
-                          <button
-                            onClick={() => {
-                              setFilterWineType(filterWineType === 'red' ? null : 'red')
-                              setFilterDropdownOpen(false)
-                            }}
-                            className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                              filterWineType === 'red'
-                                ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-medium'
-                                : 'text-cellar-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20'
-                            }`}
-                          >
-                            <span className="inline-flex items-center gap-1">
-                              <img
-                                src="/icons/red-wine-glass.svg"
-                                alt="Red wine"
-                                className="w-4 h-4"
-                              />
-                              <span>Red</span>
-                            </span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setFilterWineType(filterWineType === 'white' ? null : 'white')
-                              setFilterDropdownOpen(false)
-                            }}
-                            className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                              filterWineType === 'white'
-                                ? 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 font-medium'
-                                : 'text-cellar-700 dark:text-gray-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
-                            }`}
-                          >
-                            <span className="inline-flex items-center gap-1">
-                              <img
-                                src="/icons/white-wine-glass.svg"
-                                alt="White wine"
-                                className="w-4 h-4"
-                              />
-                              <span>White</span>
-                            </span>
-                          </button>
-                          
-                          {/* Divider */}
-                          <div className="border-t border-cellar-200 dark:border-gray-600 my-1"></div>
-                          
-                          {/* Varietal Options */}
-                          {availableVarietals.length > 0 ? availableVarietals.map((varietal) => (
-                            <button
-                              key={varietal}
-                              onClick={() => {
-                                setFilterVarietal(filterVarietal === varietal ? null : varietal)
-                                setFilterDropdownOpen(false)
-                              }}
-                              className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                                filterVarietal === varietal
-                                  ? 'bg-wine-50 dark:bg-wine-900/30 text-wine-600 dark:text-wine-400 font-medium'
-                                  : 'text-cellar-700 dark:text-gray-300 hover:bg-cellar-50 dark:hover:bg-gray-700'
-                              }`}
-                            >
-                              {varietal}
-                            </button>
-                          )) : (
-                            <div className="px-4 py-2 text-sm text-cellar-500 dark:text-gray-400">
-                              No varietals in collection
-                            </div>
+                          {filterSubmenu === null ? (
+                            <>
+                              {/* Top-level menu */}
+                              <button
+                                onClick={() => {
+                                  setFilterWineType(null)
+                                  setFilterVarietal(null)
+                                  setFilterRegion(null)
+                                  setFilterVineyard(null)
+                                  setFilterDropdownOpen(false)
+                                }}
+                                className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                                  !filterWineType && !filterVarietal && !filterRegion && !filterVineyard
+                                    ? 'bg-wine-50 dark:bg-wine-900/30 text-wine-600 dark:text-wine-400 font-medium'
+                                    : 'text-cellar-700 dark:text-gray-300 hover:bg-cellar-50 dark:hover:bg-gray-700'
+                                }`}
+                              >
+                                All Wines
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setFilterWineType(filterWineType === 'red' ? null : 'red')
+                                  setFilterDropdownOpen(false)
+                                }}
+                                className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                                  filterWineType === 'red'
+                                    ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-medium'
+                                    : 'text-cellar-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20'
+                                }`}
+                              >
+                                <span className="inline-flex items-center gap-1">
+                                  <img src="/icons/red-wine-glass.svg" alt="Red wine" className="w-4 h-4" />
+                                  <span>Red</span>
+                                </span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setFilterWineType(filterWineType === 'white' ? null : 'white')
+                                  setFilterDropdownOpen(false)
+                                }}
+                                className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                                  filterWineType === 'white'
+                                    ? 'bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 font-medium'
+                                    : 'text-cellar-700 dark:text-gray-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                                }`}
+                              >
+                                <span className="inline-flex items-center gap-1">
+                                  <img src="/icons/white-wine-glass.svg" alt="White wine" className="w-4 h-4" />
+                                  <span>White</span>
+                                </span>
+                              </button>
+
+                              <div className="border-t border-cellar-200 dark:border-gray-600 my-1"></div>
+
+                              {/* Varietal submenu trigger */}
+                              <button
+                                onClick={() => setFilterSubmenu('varietal')}
+                                className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center justify-between ${
+                                  filterVarietal
+                                    ? 'text-wine-600 dark:text-wine-400 font-medium'
+                                    : 'text-cellar-700 dark:text-gray-300 hover:bg-cellar-50 dark:hover:bg-gray-700'
+                                }`}
+                              >
+                                <span>{filterVarietal ? `Varietal: ${filterVarietal}` : 'Varietal'}</span>
+                                <svg className="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </button>
+
+                              {/* Region submenu trigger */}
+                              <button
+                                onClick={() => setFilterSubmenu('region')}
+                                className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center justify-between ${
+                                  filterRegion
+                                    ? 'text-wine-600 dark:text-wine-400 font-medium'
+                                    : 'text-cellar-700 dark:text-gray-300 hover:bg-cellar-50 dark:hover:bg-gray-700'
+                                }`}
+                              >
+                                <span>{filterRegion ? `Region: ${filterRegion}` : 'Region'}</span>
+                                <svg className="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </button>
+
+                              {/* Vineyard submenu trigger */}
+                              <button
+                                onClick={() => setFilterSubmenu('vineyard')}
+                                className={`w-full text-left px-4 py-2 text-sm transition-colors flex items-center justify-between ${
+                                  filterVineyard
+                                    ? 'text-wine-600 dark:text-wine-400 font-medium'
+                                    : 'text-cellar-700 dark:text-gray-300 hover:bg-cellar-50 dark:hover:bg-gray-700'
+                                }`}
+                              >
+                                <span>{filterVineyard ? `Vineyard: ${filterVineyard}` : 'Vineyard'}</span>
+                                <svg className="w-4 h-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              {/* Submenu with back button */}
+                              <button
+                                onClick={() => setFilterSubmenu(null)}
+                                className="w-full text-left px-4 py-2 text-sm text-cellar-500 dark:text-gray-400 hover:bg-cellar-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                                <span>Back</span>
+                              </button>
+                              <div className="border-t border-cellar-200 dark:border-gray-600 my-1"></div>
+
+                              {filterSubmenu === 'varietal' && (
+                                <>
+                                  {filterVarietal && (
+                                    <button
+                                      onClick={() => {
+                                        setFilterVarietal(null)
+                                        setFilterSubmenu(null)
+                                        setFilterDropdownOpen(false)
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-sm text-cellar-500 dark:text-gray-400 hover:bg-cellar-50 dark:hover:bg-gray-700 transition-colors"
+                                    >
+                                      Clear varietal
+                                    </button>
+                                  )}
+                                  {availableVarietals.length > 0 ? availableVarietals.map((varietal) => (
+                                    <button
+                                      key={varietal}
+                                      onClick={() => {
+                                        setFilterVarietal(filterVarietal === varietal ? null : varietal)
+                                        setFilterSubmenu(null)
+                                        setFilterDropdownOpen(false)
+                                      }}
+                                      className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                                        filterVarietal === varietal
+                                          ? 'bg-wine-50 dark:bg-wine-900/30 text-wine-600 dark:text-wine-400 font-medium'
+                                          : 'text-cellar-700 dark:text-gray-300 hover:bg-cellar-50 dark:hover:bg-gray-700'
+                                      }`}
+                                    >
+                                      {varietal}
+                                    </button>
+                                  )) : (
+                                    <div className="px-4 py-2 text-sm text-cellar-500 dark:text-gray-400">
+                                      No varietals in collection
+                                    </div>
+                                  )}
+                                </>
+                              )}
+
+                              {filterSubmenu === 'region' && (
+                                <>
+                                  {filterRegion && (
+                                    <button
+                                      onClick={() => {
+                                        setFilterRegion(null)
+                                        setFilterSubmenu(null)
+                                        setFilterDropdownOpen(false)
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-sm text-cellar-500 dark:text-gray-400 hover:bg-cellar-50 dark:hover:bg-gray-700 transition-colors"
+                                    >
+                                      Clear region
+                                    </button>
+                                  )}
+                                  {availableRegions.length > 0 ? availableRegions.map((region) => (
+                                    <button
+                                      key={region}
+                                      onClick={() => {
+                                        setFilterRegion(filterRegion === region ? null : region)
+                                        setFilterSubmenu(null)
+                                        setFilterDropdownOpen(false)
+                                      }}
+                                      className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                                        filterRegion === region
+                                          ? 'bg-wine-50 dark:bg-wine-900/30 text-wine-600 dark:text-wine-400 font-medium'
+                                          : 'text-cellar-700 dark:text-gray-300 hover:bg-cellar-50 dark:hover:bg-gray-700'
+                                      }`}
+                                    >
+                                      {region}
+                                    </button>
+                                  )) : (
+                                    <div className="px-4 py-2 text-sm text-cellar-500 dark:text-gray-400">
+                                      No regions in collection
+                                    </div>
+                                  )}
+                                </>
+                              )}
+
+                              {filterSubmenu === 'vineyard' && (
+                                <>
+                                  {filterVineyard && (
+                                    <button
+                                      onClick={() => {
+                                        setFilterVineyard(null)
+                                        setFilterSubmenu(null)
+                                        setFilterDropdownOpen(false)
+                                      }}
+                                      className="w-full text-left px-4 py-2 text-sm text-cellar-500 dark:text-gray-400 hover:bg-cellar-50 dark:hover:bg-gray-700 transition-colors"
+                                    >
+                                      Clear vineyard
+                                    </button>
+                                  )}
+                                  {availableVineyards.length > 0 ? availableVineyards.map((vineyard) => (
+                                    <button
+                                      key={vineyard}
+                                      onClick={() => {
+                                        setFilterVineyard(filterVineyard === vineyard ? null : vineyard)
+                                        setFilterSubmenu(null)
+                                        setFilterDropdownOpen(false)
+                                      }}
+                                      className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                                        filterVineyard === vineyard
+                                          ? 'bg-wine-50 dark:bg-wine-900/30 text-wine-600 dark:text-wine-400 font-medium'
+                                          : 'text-cellar-700 dark:text-gray-300 hover:bg-cellar-50 dark:hover:bg-gray-700'
+                                      }`}
+                                    >
+                                      {vineyard}
+                                    </button>
+                                  )) : (
+                                    <div className="px-4 py-2 text-sm text-cellar-500 dark:text-gray-400">
+                                      No vineyards in collection
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
@@ -1065,6 +1221,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                   <th className="text-left py-3 px-2 font-medium text-cellar-700 dark:text-gray-300">Vineyard</th>
                   <th className="text-left py-3 px-2 font-medium text-cellar-700 dark:text-gray-300">Rating</th>
                   <th className="text-left py-3 px-2 font-medium text-cellar-700 dark:text-gray-300">Review</th>
+                  <th className="text-left py-3 px-2 font-medium text-cellar-700 dark:text-gray-300">Notes</th>
                   <th className="text-left py-3 px-2 font-medium text-cellar-700 dark:text-gray-300">Date Tried</th>
                   {isOwnProfile && <th className="py-3 px-2 w-0"></th>}
                 </tr>
@@ -1151,6 +1308,36 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                         )}
                       </td>
                       
+                      {/* Notes */}
+                      <td className="py-4 px-2">
+                        {(() => {
+                          const wineNotes = userWine.notes
+                            || localUserWines.find(uw => uw.wine.id === userWine.wine.id && uw.id !== userWine.id && uw.notes)?.notes
+                          return wineNotes ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                if (notesModalWineId === userWine.id) {
+                                  setNotesModalWineId(null)
+                                  setNotesPopoverPos(null)
+                                } else {
+                                  const rect = e.currentTarget.getBoundingClientRect()
+                                  setNotesPopoverPos({ top: rect.bottom + 6, left: rect.left })
+                                  setNotesModalWineId(userWine.id)
+                                  setEditingNotesText(wineNotes)
+                                  setOriginalNotesText(wineNotes)
+                                }
+                              }}
+                              className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 text-sm font-medium cursor-pointer"
+                            >
+                              Notes
+                            </button>
+                          ) : (
+                            <span className="text-cellar-400 dark:text-gray-500 text-sm">—</span>
+                          )
+                        })()}
+                      </td>
+
                       {/* Date Tried */}
                       <td className="py-4 px-2">
                         <div className="flex items-center justify-between gap-2">
@@ -1480,6 +1667,119 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
           </div>
         )}
       </div>
+
+      {/* Notes popover */}
+      {notesModalWineId && notesPopoverPos && (() => {
+        const wine = localUserWines.find(uw => uw.id === notesModalWineId)
+        if (!wine) return null
+        const sourceEntry = wine.notes
+          ? wine
+          : localUserWines.find(uw => uw.wine.id === wine.wine.id && uw.id !== wine.id && uw.notes)
+        if (!sourceEntry) return null
+
+        const hasChanges = editingNotesText !== originalNotesText
+        const closePopover = () => { setNotesModalWineId(null); setNotesPopoverPos(null) }
+
+        const handleSave = async () => {
+          setSavingNotes(true)
+          const wineId = wine.wine.id
+          const entryToUpdate = localUserWines.find(uw => uw.wine.id === wineId && uw.inCellar) || sourceEntry
+          try {
+            const response = await fetch('/api/user-wines', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ wineId, notes: editingNotesText.trim() || null }),
+            })
+            if (response.ok) {
+              setLocalUserWines(prev => prev.map(uw =>
+                uw.wine.id === wineId ? { ...uw, notes: editingNotesText.trim() || null } : uw
+              ))
+              setOriginalNotesText(editingNotesText)
+            }
+          } catch (error) {
+            console.error('Failed to save notes:', error)
+          } finally {
+            setSavingNotes(false)
+          }
+        }
+
+        const handleCancel = () => {
+          setEditingNotesText(originalNotesText)
+        }
+
+        const clampedLeft = Math.min(notesPopoverPos.left, window.innerWidth - 272)
+        const fitsBelow = notesPopoverPos.top + 200 < window.innerHeight
+        const topPos = fitsBelow ? notesPopoverPos.top : notesPopoverPos.top - 212
+
+        return (
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => {
+                if (hasChanges) return
+                closePopover()
+              }}
+            />
+            <div
+              className="fixed z-50 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-cellar-200 dark:border-gray-600 p-3"
+              style={{ top: topPos, left: Math.max(8, clampedLeft) }}
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <span className="text-xs font-semibold text-cellar-800 dark:text-gray-200">
+                  Notes
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hasChanges) {
+                      handleCancel()
+                    }
+                    closePopover()
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm leading-none cursor-pointer shrink-0"
+                >
+                  ×
+                </button>
+              </div>
+              <textarea
+                ref={(el) => {
+                  if (el) {
+                    el.style.height = 'auto'
+                    el.style.height = el.scrollHeight + 'px'
+                  }
+                }}
+                value={editingNotesText}
+                onChange={(e) => {
+                  setEditingNotesText(e.target.value)
+                  e.target.style.height = 'auto'
+                  e.target.style.height = e.target.scrollHeight + 'px'
+                }}
+                className="w-full text-sm text-cellar-700 dark:text-gray-300 bg-cellar-50 dark:bg-gray-700 border border-cellar-200 dark:border-gray-600 rounded px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-teal-500 overflow-hidden"
+              />
+              {hasChanges && (
+                <div className="flex justify-end gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={savingNotes}
+                    className="px-2.5 py-1 text-xs font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={savingNotes}
+                    className="px-2.5 py-1 text-xs font-medium bg-teal-600 hover:bg-teal-700 text-white rounded transition-colors disabled:opacity-50"
+                  >
+                    {savingNotes ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )
+      })()}
     </div>
   )
 }
