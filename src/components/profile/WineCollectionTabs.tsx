@@ -19,9 +19,11 @@ interface WineCollectionTabsProps {
   onWinesChange?: (wines: (UserWineWithDetails | UserWineWithReview)[]) => void
   defaultTab?: string
   defaultTabKey?: number
+  defaultVarietal?: string | null
+  defaultVarietalKey?: number
 }
 
-export default function WineCollectionTabs({ userWines: initialUserWines, isOwnProfile = false, onWinesChange, defaultTab, defaultTabKey }: WineCollectionTabsProps) {
+export default function WineCollectionTabs({ userWines: initialUserWines, isOwnProfile = false, onWinesChange, defaultTab, defaultTabKey, defaultVarietal, defaultVarietalKey }: WineCollectionTabsProps) {
   const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState<string>(defaultTab || 'MY_CELLAR')
   const [notesModalWineId, setNotesModalWineId] = useState<string | null>(null)
@@ -35,6 +37,12 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
       setActiveTab(defaultTab)
     }
   }, [defaultTab, defaultTabKey])
+
+  useEffect(() => {
+    if (defaultVarietalKey !== undefined) {
+      setFilterVarietal(defaultVarietal ?? null)
+    }
+  }, [defaultVarietal, defaultVarietalKey])
   const [ratingStates, setRatingStates] = useState<Record<string, number>>({})
   const [localUserWines, setLocalUserWinesInternal] = useState(initialUserWines)
   

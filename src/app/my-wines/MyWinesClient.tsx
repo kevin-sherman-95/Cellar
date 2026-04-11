@@ -21,10 +21,17 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
   const router = useRouter()
   const [isAddWineModalOpen, setIsAddWineModalOpen] = useState(false)
   const [selectedTab, setSelectedTab] = useState<{ tab: string; key: number } | undefined>(undefined)
+  const [selectedVarietal, setSelectedVarietal] = useState<{ varietal: string | null; key: number } | undefined>(undefined)
   const tabsRef = useRef<HTMLDivElement>(null)
 
   const scrollToTabs = (tab: string) => {
     setSelectedTab(prev => ({ tab, key: (prev?.key ?? 0) + 1 }))
+    tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const scrollToTabsWithVarietal = (tab: string, varietal: string | null) => {
+    setSelectedTab(prev => ({ tab, key: (prev?.key ?? 0) + 1 }))
+    setSelectedVarietal(prev => ({ varietal, key: (prev?.key ?? 0) + 1 }))
     tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
@@ -47,21 +54,43 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
   const tried = localUserWines.filter(wine => wine.status === USER_WINE_STATUS.TRIED)
   const inCellar = localUserWines.filter(wine => wine.inCellar === true)
   
-  const countries = new Set(localUserWines.map(wine => wine.wine?.country).filter(Boolean))
-  const regions = new Set(localUserWines.map(wine => wine.wine?.region).filter(Boolean))
-  
   const totalBottles = inCellar.reduce((sum, wine) => sum + (wine.quantity || 0), 0)
-  
-  const averageRating = tried.length > 0 
-    ? tried.reduce((sum, wine) => sum + (wine.wine?.averageRating || 0), 0) / tried.length
-    : 0
 
   const stats = {
     tried: tried.length,
-    inCellar: totalBottles, // Use total bottles count to match My Cellar tab
-    totalCountries: countries.size,
-    totalRegions: regions.size,
-    averageRating: Number(averageRating.toFixed(1))
+    inCellar: totalBottles,
+  }
+
+  // Compute varietal breakdown across the entire collection (cellar bottles by quantity)
+  const varietalCounts = localUserWines.reduce<Record<string, number>>((acc, uw) => {
+    const varietal = uw.wine?.varietal
+    if (varietal) {
+      acc[varietal] = (acc[varietal] || 0) + (uw.inCellar ? (uw.quantity || 1) : 1)
+    }
+    return acc
+  }, {})
+
+  const sortedVarietals = Object.entries(varietalCounts)
+    .sort((a, b) => b[1] - a[1])
+
+  const getWineType = (varietal: string): 'red' | 'white' | 'other' => {
+    const v = varietal.toLowerCase()
+    const reds = [
+      'cabernet sauvignon', 'merlot', 'pinot noir', 'syrah', 'shiraz', 'zinfandel',
+      'sangiovese', 'tempranillo', 'malbec', 'cabernet franc', 'grenache', 'gamay',
+      'nebbiolo', 'barbera', 'dolcetto', 'carmenère', 'petit verdot', 'mourvèdre',
+      'carignan', 'cinsault', 'pinotage', 'tannat', 'chianti', 'red blend', 'red',
+    ]
+    const whites = [
+      'chardonnay', 'sauvignon blanc', 'pinot grigio', 'pinot gris', 'riesling',
+      'gewürztraminer', 'viognier', 'chenin blanc', 'semillon', 'muscat',
+      'albariño', 'verdejo', 'vermentino', 'grüner veltliner', 'torrontés',
+      'moscato', 'pinot blanc', 'müller-thurgau', 'trebbiano', 'garganega',
+      'prosecco', 'white blend', 'white',
+    ]
+    if (reds.some(r => v.includes(r))) return 'red'
+    if (whites.some(w => v.includes(w))) return 'white'
+    return 'other'
   }
 
   const handleWineAdded = (newUserWine?: any) => {
@@ -102,7 +131,7 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
           Collection Overview
         </h2>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <button
             onClick={() => scrollToTabs('TRIED')}
             className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center cursor-pointer hover:ring-2 hover:ring-green-400 dark:hover:ring-green-500 transition-all"
@@ -118,23 +147,41 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
             <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">{stats.inCellar}</div>
             <div className="text-sm text-purple-600 dark:text-purple-300">In Cellar</div>
           </button>
-          
-          <button
-            onClick={() => scrollToTabs('MY_CELLAR')}
-            className="bg-slate-50 dark:bg-slate-900/20 p-4 rounded-lg text-center cursor-pointer hover:ring-2 hover:ring-slate-400 dark:hover:ring-slate-500 transition-all"
-          >
-            <div className="text-2xl font-bold text-slate-700 dark:text-slate-400">{stats.totalCountries}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-300">Countries</div>
-          </button>
-          
-          <button
-            onClick={() => scrollToTabs('MY_CELLAR')}
-            className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-lg text-center cursor-pointer hover:ring-2 hover:ring-indigo-400 dark:hover:ring-indigo-500 transition-all"
-          >
-            <div className="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{stats.totalRegions}</div>
-            <div className="text-sm text-indigo-600 dark:text-indigo-300">Regions</div>
-          </button>
         </div>
+
+        {sortedVarietals.length > 0 && (
+          <>
+            <h3 className="text-sm font-semibold text-cellar-600 dark:text-gray-400 uppercase tracking-wide mb-3">
+              Varietals
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {sortedVarietals.map(([varietal, count]) => {
+                const type = getWineType(varietal)
+                const isWhite = type === 'white'
+                return (
+                  <button
+                    key={varietal}
+                    onClick={() => scrollToTabsWithVarietal('MY_CELLAR', varietal)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer ${
+                      isWhite
+                        ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 hover:ring-2 hover:ring-amber-300 dark:hover:ring-amber-600'
+                        : 'bg-wine-50 dark:bg-wine-900/20 text-wine-700 dark:text-wine-300 hover:bg-wine-100 dark:hover:bg-wine-900/40 hover:ring-2 hover:ring-wine-300 dark:hover:ring-wine-600'
+                    }`}
+                  >
+                    <span>{varietal}</span>
+                    <span className={`text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center ${
+                      isWhite
+                        ? 'bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200'
+                        : 'bg-wine-200 dark:bg-wine-800 text-wine-800 dark:text-wine-200'
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Quick Actions */}
@@ -176,6 +223,8 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
           onWinesChange={handleWinesChange}
           defaultTab={selectedTab?.tab}
           defaultTabKey={selectedTab?.key}
+          defaultVarietal={selectedVarietal?.varietal}
+          defaultVarietalKey={selectedVarietal?.key}
         />
       </div>
 
