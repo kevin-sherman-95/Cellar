@@ -192,7 +192,7 @@ export default function WineCard({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group h-full flex flex-col">
-      <Link href={`/wines/${wine.id}`}>
+      <Link href={`/wines/${wine.id}`} className="cursor-pointer block">
         <div className="relative">
           <div className="h-48 bg-gradient-to-br from-wine-100 to-wine-200 dark:from-wine-900 dark:to-wine-800 flex items-center justify-center overflow-hidden">
             <img 
