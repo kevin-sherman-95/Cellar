@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import PrefetchLink from '@/components/navigation/PrefetchLink'
 import { getRandomFeaturedWines } from '@/lib/wine-actions'
-import { getWineBottlePlaceholder } from '@/lib/wine-image-utils'
+import { getWineBottleImageUrl } from '@/lib/wine-image-utils'
+import { resolveAndCacheWineImage } from '@/lib/wine-image-server'
 
 // Force dynamic rendering to avoid database access during build
 export const dynamic = 'force-dynamic'
@@ -10,17 +10,46 @@ export default async function Home() {
 
   const featuredWines = await getRandomFeaturedWines(3)
 
+  const hasRealImage = (img: string | null | undefined) =>
+    !!img && !img.includes('fallback')
+
+  // Resolve and cache images for featured wines missing a real one
+  const winesToResolve = featuredWines.filter((w: any) => w.id && !hasRealImage(w.image))
+  if (winesToResolve.length > 0) {
+    await Promise.all(
+      winesToResolve.map((w: any) =>
+        resolveAndCacheWineImage({ ...w, image: null }).catch(() => {})
+      )
+    )
+  }
+
+  // Re-read image URLs for wines that were just resolved
+  const { prisma } = await import('@/lib/db')
+  const resolvedWines = await Promise.all(
+    featuredWines.map(async (w: any) => {
+      if (hasRealImage(w.image) || !w.id) return w
+      const updated = await prisma.wine.findUnique({
+        where: { id: w.id },
+        select: { image: true }
+      })
+      return { ...w, image: updated?.image ?? null }
+    })
+  )
+
   const fallbackWines = [
     { name: 'Château Margaux 2015', region: 'Bordeaux, France', vintage: 2015, averageRating: 4.8 },
     { name: 'Dom Pérignon 2012', region: 'Champagne, France', vintage: 2012, averageRating: 4.7 },
     { name: 'Opus One 2018', region: 'Napa Valley, USA', vintage: 2018, averageRating: 4.6 }
   ]
 
-  const displayWines = (featuredWines.length > 0 ? featuredWines : fallbackWines).map((wine: any) => ({
+  const displayWines = (resolvedWines.length > 0 ? resolvedWines : fallbackWines).map((wine: any) => ({
     id: wine.id as string | undefined,
     name: wine.name as string,
+    vineyard: (wine.vineyard as string | undefined) ?? undefined,
     region: wine.region as string,
     vintage: wine.vintage as number | null | undefined,
+    image: (wine.image as string | null | undefined) ?? null,
+    varietal: (wine.varietal as string | null | undefined) ?? null,
     rating: typeof wine.averageRating === 'number' && wine.averageRating > 0
       ? Number(wine.averageRating.toFixed(1))
       : undefined,
@@ -48,12 +77,14 @@ export default async function Home() {
             The Best Bottles Leave the Fewest Memories
           </div>
           <p className="text-xl md:text-2xl mb-10 max-w-4xl mx-auto leading-relaxed">
-            Finally, a place to log what you drank, pretend you taste &ldquo;notes of elderberry,&rdquo; 
-            and silently judge your friends for drinking Rosé. Welcome home, you beautiful lush.
+            Look, you spent $60 on a bottle and you&apos;re going to forget it by Tuesday.
+            Cellar is here so you can remember what you loved, what you hated, and what you
+            only bought because the label had a cool animal on it. Welcome home, gorgeous.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center ml-4">
-            <PrefetchLink
+            <Link
               href="/my-wines"
+              prefetch
               className="bg-white text-red-700 px-10 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg"
             >
               <span className="flex items-center gap-3 justify-center">
@@ -70,7 +101,7 @@ export default async function Home() {
                 />
                 <span>Visit My Cellar</span>
               </span>
-            </PrefetchLink>
+            </Link>
             <Link
               href="/wines"
               className="border-3 border-white text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-red-700 transition-all transform hover:scale-105"
@@ -93,7 +124,7 @@ export default async function Home() {
               <div key={wine.id || i} className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 flex flex-col h-full">
                 <div className="h-52 bg-[#7b1534] dark:bg-[#7b1534] flex items-center justify-center relative">
                   <img
-                    src={getWineBottlePlaceholder()}
+                    src={getWineBottleImageUrl(wine.image, wine.name, wine.varietal)}
                     alt={wine.name}
                     className="h-40 w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]"
                   />
@@ -104,9 +135,14 @@ export default async function Home() {
                   )}
                 </div>
                 <div className="p-6 flex flex-col h-full">
-                  <h3 className="font-serif text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+                  <h3 className="font-serif text-xl font-bold text-gray-800 dark:text-gray-100 mb-1">
                     {wine.name}
                   </h3>
+                  {wine.vineyard && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 italic">
+                      {wine.vineyard}
+                    </p>
+                  )}
                   <p className="text-gray-600 dark:text-gray-300 mb-4 font-medium">
                     📍 {wine.region}
                   </p>
@@ -149,19 +185,6 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* Philosophy Section */}
-        <section className="mb-16 text-center">
-          <div className="bg-gradient-to-r from-amber-600 via-red-700 to-purple-700 rounded-3xl p-12 text-white shadow-2xl">
-            <h2 className="text-5xl font-serif italic mb-6">The Drunk Truth</h2>
-            <p className="text-xl md:text-2xl font-light max-w-4xl mx-auto leading-relaxed">
-              Look, you spent $60 on a bottle and you&apos;re going to forget it by Tuesday.
-              Cellar is here so you can remember what you loved, what you hated, and what you
-              only bought because the label had a cool animal on it. No judgment. Okay, some judgment.
-            </p>
-            <div className="mt-8 text-6xl">🍇🫣🍷</div>
-          </div>
-        </section>
-
         {/* Community Features Section */}
         <section className="mb-20">
           <h2 className="text-4xl font-serif font-bold text-gray-800 dark:text-gray-100 mb-12 text-center">
@@ -189,7 +212,7 @@ export default async function Home() {
           <div className="bg-gradient-to-r from-red-600 to-amber-500 rounded-2xl shadow-2xl p-8 text-center text-white">
             <div className="text-6xl mb-6">🎉</div>
             <h3 className="text-3xl font-serif font-bold mb-4">Still Sober Enough to Sign Up?</h3>
-            <p className="text-xl mb-8 opacity-90">Join thousands of functional wine enthusiasts who think &ldquo;just one glass&rdquo; is a personality trait</p>
+            <p className="text-xl mb-8 opacity-90">Join trillions of functional wine enthusiasts who think &ldquo;just one glass&rdquo; is a personality trait</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/wines"
