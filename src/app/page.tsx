@@ -45,11 +45,11 @@ export default async function Home() {
             Cellar
           </h1>
           <div className="text-2xl md:text-3xl font-serif italic mb-8 text-amber-200">
-Your Personal Wine Sanctuary
+            The Best Bottles Leave the Fewest Memories
           </div>
           <p className="text-xl md:text-2xl mb-10 max-w-4xl mx-auto leading-relaxed">
-            Discover exceptional wines, share your tasting experiences, and connect with fellow connoisseurs 
-            in the world&apos;s most sophisticated wine social platform.
+            Finally, a place to log what you drank, pretend you taste &ldquo;notes of elderberry,&rdquo; 
+            and silently judge your friends for drinking Rosé. Welcome home, you beautiful lush.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center ml-4">
             <PrefetchLink
@@ -75,7 +75,7 @@ Your Personal Wine Sanctuary
               href="/wines"
               className="border-3 border-white text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-red-700 transition-all transform hover:scale-105"
             >
-              🍇 Start Exploring Wines
+              🍇 Show Me the Juice
             </Link>
           </div>
         </div>
@@ -86,7 +86,7 @@ Your Personal Wine Sanctuary
         {/* Featured Wines Section */}
         <section className="mb-20">
           <h2 className="text-4xl font-serif font-bold text-gray-800 dark:text-gray-100 mb-12 text-center">
-            🏆 Featured Wines
+            🏆 Bottles Worth Bragging About
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {displayWines.map((wine, i) => (
@@ -152,56 +152,56 @@ Your Personal Wine Sanctuary
         {/* Philosophy Section */}
         <section className="mb-16 text-center">
           <div className="bg-gradient-to-r from-amber-600 via-red-700 to-purple-700 rounded-3xl p-12 text-white shadow-2xl">
-            <h2 className="text-5xl font-serif italic mb-6">Your Wine Sanctuary</h2>
+            <h2 className="text-5xl font-serif italic mb-6">The Drunk Truth</h2>
             <p className="text-xl md:text-2xl font-light max-w-4xl mx-auto leading-relaxed">
-              Every great wine deserves to be remembered and shared. 
-              At Cellar, we believe in the honest sharing of wine experiences, creating a community where every 
-              tasting note tells a story and every review reflects genuine passion.
+              Look, you spent $60 on a bottle and you&apos;re going to forget it by Tuesday.
+              Cellar is here so you can remember what you loved, what you hated, and what you
+              only bought because the label had a cool animal on it. No judgment. Okay, some judgment.
             </p>
-            <div className="mt-8 text-6xl">🍇✨🍷</div>
+            <div className="mt-8 text-6xl">🍇🫣🍷</div>
           </div>
         </section>
 
         {/* Community Features Section */}
         <section className="mb-20">
           <h2 className="text-4xl font-serif font-bold text-gray-800 dark:text-gray-100 mb-12 text-center">
-            🌟 The Cellar Experience
+            🌟 What&apos;s In It For You
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div className="bg-gradient-to-br from-red-100 to-red-200 rounded-2xl p-8 text-center shadow-lg">
               <div className="text-5xl mb-4">📚</div>
-              <h3 className="text-xl font-serif font-bold text-gray-800 mb-3">Track Your Wines</h3>
-              <p className="text-gray-700">Keep a digital cellar of wines you&apos;ve tried, want to try, and are currently tasting.</p>
+              <h3 className="text-xl font-serif font-bold text-gray-800 mb-3">Hoard Like a Dragon</h3>
+              <p className="text-gray-700">Keep a digital stash of every bottle you&apos;ve conquered, every one you&apos;re eyeing, and the one you&apos;re halfway through right now. We don&apos;t judge pace.</p>
             </div>
             <div className="bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl p-8 text-center shadow-lg">
               <div className="text-5xl mb-4">⭐</div>
-              <h3 className="text-xl font-serif font-bold text-gray-800 mb-3">Rate & Review</h3>
-              <p className="text-gray-700">Share your tasting notes and ratings to help others discover great wines.</p>
+              <h3 className="text-xl font-serif font-bold text-gray-800 mb-3">Be a Wine Critic</h3>
+              <p className="text-gray-700">Drop your hot takes and questionable tasting notes. &ldquo;Hints of gasoline&rdquo;? Sure. &ldquo;Tastes expensive&rdquo;? Valid. This is a safe space for your unhinged palate.</p>
             </div>
             <div className="bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl p-8 text-center shadow-lg">
               <div className="text-5xl mb-4">👥</div>
-              <h3 className="text-xl font-serif font-bold text-gray-800 mb-3">Connect & Discover</h3>
-              <p className="text-gray-700">Follow wine lovers, see what they&apos;re drinking, and get personalized recommendations.</p>
+              <h3 className="text-xl font-serif font-bold text-gray-800 mb-3">Stalk Other Drinkers</h3>
+              <p className="text-gray-700">Follow people with better taste than you, copy their picks, and slowly become the wine friend everyone texts at the liquor store.</p>
             </div>
           </div>
 
           <div className="bg-gradient-to-r from-red-600 to-amber-500 rounded-2xl shadow-2xl p-8 text-center text-white">
             <div className="text-6xl mb-6">🎉</div>
-            <h3 className="text-3xl font-serif font-bold mb-4">Ready to Start Your Wine Journey?</h3>
-            <p className="text-xl mb-8 opacity-90">Join thousands of wine connoisseurs discovering truth in every glass</p>
+            <h3 className="text-3xl font-serif font-bold mb-4">Still Sober Enough to Sign Up?</h3>
+            <p className="text-xl mb-8 opacity-90">Join thousands of functional wine enthusiasts who think &ldquo;just one glass&rdquo; is a personality trait</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/wines"
                 className="bg-white text-red-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg"
               >
-                🍇 Browse Wine Catalog
+                🍇 Browse the Goods
               </Link>
               <Link
                 href="/auth/signup"
                 className="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-red-700 transition-all transform hover:scale-105"
               >
-                📝 Create Free Account
+                📝 Pour Me In
               </Link>
             </div>
           </div>
