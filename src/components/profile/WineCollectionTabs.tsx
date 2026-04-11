@@ -24,6 +24,11 @@ interface WineCollectionTabsProps {
 export default function WineCollectionTabs({ userWines: initialUserWines, isOwnProfile = false, onWinesChange, defaultTab, defaultTabKey }: WineCollectionTabsProps) {
   const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState<string>(defaultTab || 'MY_CELLAR')
+  const [notesModalWineId, setNotesModalWineId] = useState<string | null>(null)
+  const [notesPopoverPos, setNotesPopoverPos] = useState<{ top: number; left: number } | null>(null)
+  const [editingNotesText, setEditingNotesText] = useState<string>('')
+  const [originalNotesText, setOriginalNotesText] = useState<string>('')
+  const [savingNotes, setSavingNotes] = useState(false)
 
   useEffect(() => {
     if (defaultTab) {
@@ -1065,6 +1070,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                   <th className="text-left py-3 px-2 font-medium text-cellar-700 dark:text-gray-300">Vineyard</th>
                   <th className="text-left py-3 px-2 font-medium text-cellar-700 dark:text-gray-300">Rating</th>
                   <th className="text-left py-3 px-2 font-medium text-cellar-700 dark:text-gray-300">Review</th>
+                  <th className="text-left py-3 px-2 font-medium text-cellar-700 dark:text-gray-300">Notes</th>
                   <th className="text-left py-3 px-2 font-medium text-cellar-700 dark:text-gray-300">Date Tried</th>
                   {isOwnProfile && <th className="py-3 px-2 w-0"></th>}
                 </tr>
@@ -1151,6 +1157,36 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                         )}
                       </td>
                       
+                      {/* Notes */}
+                      <td className="py-4 px-2">
+                        {(() => {
+                          const wineNotes = userWine.notes
+                            || localUserWines.find(uw => uw.wine.id === userWine.wine.id && uw.id !== userWine.id && uw.notes)?.notes
+                          return wineNotes ? (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                if (notesModalWineId === userWine.id) {
+                                  setNotesModalWineId(null)
+                                  setNotesPopoverPos(null)
+                                } else {
+                                  const rect = e.currentTarget.getBoundingClientRect()
+                                  setNotesPopoverPos({ top: rect.bottom + 6, left: rect.left })
+                                  setNotesModalWineId(userWine.id)
+                                  setEditingNotesText(wineNotes)
+                                  setOriginalNotesText(wineNotes)
+                                }
+                              }}
+                              className="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 text-sm font-medium cursor-pointer"
+                            >
+                              Notes
+                            </button>
+                          ) : (
+                            <span className="text-cellar-400 dark:text-gray-500 text-sm">—</span>
+                          )
+                        })()}
+                      </td>
+
                       {/* Date Tried */}
                       <td className="py-4 px-2">
                         <div className="flex items-center justify-between gap-2">
@@ -1480,6 +1516,119 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
           </div>
         )}
       </div>
+
+      {/* Notes popover */}
+      {notesModalWineId && notesPopoverPos && (() => {
+        const wine = localUserWines.find(uw => uw.id === notesModalWineId)
+        if (!wine) return null
+        const sourceEntry = wine.notes
+          ? wine
+          : localUserWines.find(uw => uw.wine.id === wine.wine.id && uw.id !== wine.id && uw.notes)
+        if (!sourceEntry) return null
+
+        const hasChanges = editingNotesText !== originalNotesText
+        const closePopover = () => { setNotesModalWineId(null); setNotesPopoverPos(null) }
+
+        const handleSave = async () => {
+          setSavingNotes(true)
+          const wineId = wine.wine.id
+          const entryToUpdate = localUserWines.find(uw => uw.wine.id === wineId && uw.inCellar) || sourceEntry
+          try {
+            const response = await fetch('/api/user-wines', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ wineId, notes: editingNotesText.trim() || null }),
+            })
+            if (response.ok) {
+              setLocalUserWines(prev => prev.map(uw =>
+                uw.wine.id === wineId ? { ...uw, notes: editingNotesText.trim() || null } : uw
+              ))
+              setOriginalNotesText(editingNotesText)
+            }
+          } catch (error) {
+            console.error('Failed to save notes:', error)
+          } finally {
+            setSavingNotes(false)
+          }
+        }
+
+        const handleCancel = () => {
+          setEditingNotesText(originalNotesText)
+        }
+
+        const clampedLeft = Math.min(notesPopoverPos.left, window.innerWidth - 272)
+        const fitsBelow = notesPopoverPos.top + 200 < window.innerHeight
+        const topPos = fitsBelow ? notesPopoverPos.top : notesPopoverPos.top - 212
+
+        return (
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => {
+                if (hasChanges) return
+                closePopover()
+              }}
+            />
+            <div
+              className="fixed z-50 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-cellar-200 dark:border-gray-600 p-3"
+              style={{ top: topPos, left: Math.max(8, clampedLeft) }}
+            >
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <span className="text-xs font-semibold text-cellar-800 dark:text-gray-200">
+                  Notes
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hasChanges) {
+                      handleCancel()
+                    }
+                    closePopover()
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm leading-none cursor-pointer shrink-0"
+                >
+                  ×
+                </button>
+              </div>
+              <textarea
+                ref={(el) => {
+                  if (el) {
+                    el.style.height = 'auto'
+                    el.style.height = el.scrollHeight + 'px'
+                  }
+                }}
+                value={editingNotesText}
+                onChange={(e) => {
+                  setEditingNotesText(e.target.value)
+                  e.target.style.height = 'auto'
+                  e.target.style.height = e.target.scrollHeight + 'px'
+                }}
+                className="w-full text-sm text-cellar-700 dark:text-gray-300 bg-cellar-50 dark:bg-gray-700 border border-cellar-200 dark:border-gray-600 rounded px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-teal-500 overflow-hidden"
+              />
+              {hasChanges && (
+                <div className="flex justify-end gap-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={savingNotes}
+                    className="px-2.5 py-1 text-xs font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={savingNotes}
+                    className="px-2.5 py-1 text-xs font-medium bg-teal-600 hover:bg-teal-700 text-white rounded transition-colors disabled:opacity-50"
+                  >
+                    {savingNotes ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
+        )
+      })()}
     </div>
   )
 }
