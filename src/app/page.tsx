@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import PrefetchLink from '@/components/navigation/PrefetchLink'
 import { getRandomFeaturedWines } from '@/lib/wine-actions'
 import { getWineBottlePlaceholder } from '@/lib/wine-image-utils'
 
@@ -51,7 +52,7 @@ Your Personal Wine Sanctuary
             in the world&apos;s most sophisticated wine social platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center ml-4">
-            <Link
+            <PrefetchLink
               href="/my-wines"
               className="bg-white text-red-700 px-10 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg"
             >
@@ -69,7 +70,7 @@ Your Personal Wine Sanctuary
                 />
                 <span>Visit My Cellar</span>
               </span>
-            </Link>
+            </PrefetchLink>
             <Link
               href="/wines"
               className="border-3 border-white text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-red-700 transition-all transform hover:scale-105"

@@ -15,6 +15,15 @@ interface WineDetailProps {
   wine: any // We'll type this properly later
 }
 
+interface EditFields {
+  name: string
+  vineyard: string
+  region: string
+  country: string
+  varietal: string
+  vintage: string
+}
+
 export default function WineDetailClient({ wine }: WineDetailProps) {
   const { data: session } = useSession()
   const router = useRouter()
@@ -22,6 +31,18 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [inCellar, setInCellar] = useState(false)
   const [cellarQuantity, setCellarQuantity] = useState(0)
+
+  const [wineData, setWineData] = useState(wine)
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [editFields, setEditFields] = useState<EditFields>({
+    name: '',
+    vineyard: '',
+    region: '',
+    country: '',
+    varietal: '',
+    vintage: '',
+  })
 
   // Check if wine is already in user's cellar on mount
   useEffect(() => {
@@ -228,6 +249,61 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
     }
   }
 
+  const startEditing = () => {
+    setEditFields({
+      name: wineData.name || '',
+      vineyard: wineData.vineyard || '',
+      region: wineData.region || '',
+      country: wineData.country || '',
+      varietal: wineData.varietal || '',
+      vintage: wineData.vintage != null ? String(wineData.vintage) : '',
+    })
+    setIsEditing(true)
+  }
+
+  const cancelEditing = () => {
+    setIsEditing(false)
+  }
+
+  const saveEdits = async () => {
+    if (!editFields.name.trim() || !editFields.vineyard.trim() || !editFields.region.trim() || !editFields.country.trim() || !editFields.varietal.trim()) {
+      alert('Name, Vineyard, Region, Country, and Varietal are required.')
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const response = await fetch(`/api/wines/${wineData.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editFields.name.trim(),
+          vineyard: editFields.vineyard.trim(),
+          region: editFields.region.trim(),
+          country: editFields.country.trim(),
+          varietal: editFields.varietal.trim(),
+          vintage: editFields.vintage.trim() === '' ? null : Number(editFields.vintage),
+        }),
+      })
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}))
+        alert(result.error || 'Failed to save changes')
+        setIsSaving(false)
+        return
+      }
+
+      const { wine: updated } = await response.json()
+      setWineData((prev: any) => ({ ...prev, ...updated }))
+      setIsEditing(false)
+    } catch (error) {
+      console.error('Error saving wine edits:', error)
+      alert('Failed to save changes')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Breadcrumb */}
@@ -246,7 +322,7 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
             <svg className="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
             </svg>
-            <span className="text-cellar-800 dark:text-gray-100 font-medium">{wine.name}</span>
+            <span className="text-cellar-800 dark:text-gray-100 font-medium">{wineData.name}</span>
           </li>
         </ol>
       </nav>
@@ -259,15 +335,15 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
               <div className="relative">
                 <div className="h-96 bg-gradient-to-br from-wine-100 to-wine-200 dark:from-wine-900 dark:to-wine-800 flex items-center justify-center">
                   <img 
-                    src={getWineBottleImageUrl(wine.image, wine.name, wine.varietal)} 
-                    alt={wine.name}
+                    src={getWineBottleImageUrl(wineData.image, wineData.name, wineData.varietal)} 
+                    alt={wineData.name}
                     className="h-full w-full object-contain p-4"
                   />
                 </div>
                 
-                {wine.vintage && (
+                {wineData.vintage && (
                   <div className="absolute top-4 right-4 bg-cellar-800 dark:bg-gray-700 text-white px-3 py-2 rounded-md font-medium">
-                    {wine.vintage}
+                    {wineData.vintage}
                   </div>
                 )}
               </div>
@@ -329,7 +405,7 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
                   <div>
                     <span className="font-medium text-cellar-700 dark:text-gray-200">Alcohol:</span>
                     <span className="ml-2 text-cellar-600 dark:text-gray-400">
-                      {wine.alcoholContent ? `${wine.alcoholContent}%` : 'Not specified'}
+                      {wineData.alcoholContent ? `${wineData.alcoholContent}%` : 'Not specified'}
                     </span>
                   </div>
                   
@@ -356,57 +432,155 @@ export default function WineDetailClient({ wine }: WineDetailProps) {
         <div className="lg:col-span-2 space-y-8">
           {/* Wine Header */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-            <h1 className="text-3xl font-serif font-bold text-cellar-900 dark:text-gray-100 mb-2">
-              {wine.name}
-            </h1>
-            
-            <div className="space-y-2 mb-6">
-              <Link 
-                href={`/wineries/${encodeURIComponent(wine.vineyard)}`}
-                className="text-xl font-medium text-cellar-700 dark:text-gray-300 hover:text-wine-600 dark:hover:text-wine-400 transition-colors"
-              >
-                {wine.vineyard}
-              </Link>
-              <p className="text-lg text-cellar-600 dark:text-gray-400">{wine.region}, {wine.country}</p>
-              <p className="text-lg text-cellar-600 dark:text-gray-400 italic">{wine.varietal}</p>
-            </div>
-
-            {/* Rating */}
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="flex items-center space-x-2">
-                <div className="flex text-2xl items-center">
-                  {Array(filledStars).fill(0).map((_, i) => (
-                    <span key={`filled-${i}`} className="text-yellow-400">★</span>
-                  ))}
-                  {hasHalfStar && (
-                    <span 
-                      className="relative inline-block"
-                      style={{
-                        background: 'linear-gradient(to right, rgb(250 204 21) 50%, rgb(209 213 219) 50%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
-                        color: 'transparent'
-                      }}
-                    >
-                      ★
-                    </span>
-                  )}
-                  {Array(emptyStars).fill(0).map((_, i) => (
-                    <span key={`empty-${i}`} className="text-gray-300 dark:text-gray-600">★</span>
-                  ))}
+            {isEditing ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-cellar-700 dark:text-gray-300 mb-1">Name *</label>
+                  <input
+                    type="text"
+                    value={editFields.name}
+                    onChange={(e) => setEditFields(f => ({ ...f, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-cellar-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-cellar-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-wine-500"
+                  />
                 </div>
-                <span className="text-xl font-medium text-cellar-800 dark:text-gray-100">
-                  {displayRating > 0 ? displayRating.toFixed(1) : 'No ratings yet'}
-                </span>
+                <div>
+                  <label className="block text-sm font-medium text-cellar-700 dark:text-gray-300 mb-1">Vineyard *</label>
+                  <input
+                    type="text"
+                    value={editFields.vineyard}
+                    onChange={(e) => setEditFields(f => ({ ...f, vineyard: e.target.value }))}
+                    className="w-full px-3 py-2 border border-cellar-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-cellar-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-wine-500"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-cellar-700 dark:text-gray-300 mb-1">Region *</label>
+                    <input
+                      type="text"
+                      value={editFields.region}
+                      onChange={(e) => setEditFields(f => ({ ...f, region: e.target.value }))}
+                      className="w-full px-3 py-2 border border-cellar-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-cellar-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-wine-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-cellar-700 dark:text-gray-300 mb-1">Country *</label>
+                    <input
+                      type="text"
+                      value={editFields.country}
+                      onChange={(e) => setEditFields(f => ({ ...f, country: e.target.value }))}
+                      className="w-full px-3 py-2 border border-cellar-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-cellar-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-wine-500"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-cellar-700 dark:text-gray-300 mb-1">Varietal *</label>
+                    <input
+                      type="text"
+                      value={editFields.varietal}
+                      onChange={(e) => setEditFields(f => ({ ...f, varietal: e.target.value }))}
+                      className="w-full px-3 py-2 border border-cellar-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-cellar-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-wine-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-cellar-700 dark:text-gray-300 mb-1">Vintage</label>
+                    <input
+                      type="number"
+                      value={editFields.vintage}
+                      onChange={(e) => setEditFields(f => ({ ...f, vintage: e.target.value }))}
+                      placeholder="e.g. 2020"
+                      className="w-full px-3 py-2 border border-cellar-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-cellar-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-wine-500"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={saveEdits}
+                    disabled={isSaving}
+                    className="px-4 py-2 text-sm font-medium bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50"
+                  >
+                    {isSaving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelEditing}
+                    disabled={isSaving}
+                    className="px-4 py-2 text-sm font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-md transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="flex items-start justify-between mb-2">
+                  <h1 className="text-3xl font-serif font-bold text-cellar-900 dark:text-gray-100">
+                    {wineData.name}
+                  </h1>
+                  {session?.user && (
+                    <button
+                      type="button"
+                      onClick={startEditing}
+                      className="ml-3 p-2 text-cellar-500 hover:text-wine-600 dark:text-gray-400 dark:hover:text-wine-400 transition-colors rounded-md hover:bg-cellar-100 dark:hover:bg-gray-700"
+                      title="Edit wine details"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
 
-            {/* Description */}
-            {wine.description && (
-              <div className="prose max-w-none">
-                <p className="text-cellar-700 dark:text-gray-200 leading-relaxed">{wine.description}</p>
-              </div>
+                <div className="space-y-2 mb-6">
+                  <Link
+                    href={`/wineries/${encodeURIComponent(wineData.vineyard)}`}
+                    className="text-xl font-medium text-cellar-700 dark:text-gray-300 hover:text-wine-600 dark:hover:text-wine-400 transition-colors"
+                  >
+                    {wineData.vineyard}
+                  </Link>
+                  <p className="text-lg text-cellar-600 dark:text-gray-400">{wineData.region}, {wineData.country}</p>
+                  <p className="text-lg text-cellar-600 dark:text-gray-400 italic">{wineData.varietal}</p>
+                </div>
+
+                {/* Rating */}
+                <div className="flex items-center space-x-4 mb-6">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex text-2xl items-center">
+                      {Array(filledStars).fill(0).map((_, i) => (
+                        <span key={`filled-${i}`} className="text-yellow-400">★</span>
+                      ))}
+                      {hasHalfStar && (
+                        <span
+                          className="relative inline-block"
+                          style={{
+                            background: 'linear-gradient(to right, rgb(250 204 21) 50%, rgb(209 213 219) 50%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                            color: 'transparent'
+                          }}
+                        >
+                          ★
+                        </span>
+                      )}
+                      {Array(emptyStars).fill(0).map((_, i) => (
+                        <span key={`empty-${i}`} className="text-gray-300 dark:text-gray-600">★</span>
+                      ))}
+                    </div>
+                    <span className="text-xl font-medium text-cellar-800 dark:text-gray-100">
+                      {displayRating > 0 ? displayRating.toFixed(1) : 'No ratings yet'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {wineData.description && (
+                  <div className="prose max-w-none">
+                    <p className="text-cellar-700 dark:text-gray-200 leading-relaxed">{wineData.description}</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

@@ -256,7 +256,20 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { wineId, inCellar, quantity, notes } = body
+    const { wineId, inCellar, quantity, notes, status, userWineId, addedAt } = body
+
+    // Handle direct entry update by userWineId (e.g. editing date tried)
+    if (userWineId && addedAt !== undefined) {
+      const entry = await prisma.userWine.findUnique({ where: { id: userWineId } })
+      if (!entry || entry.userId !== session.user.id) {
+        return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
+      }
+      const updated = await prisma.userWine.update({
+        where: { id: userWineId },
+        data: { addedAt: new Date(addedAt) },
+      })
+      return NextResponse.json({ success: true, userWine: updated })
+    }
 
     if (!wineId) {
       return NextResponse.json(
@@ -275,6 +288,35 @@ export async function PATCH(request: NextRequest) {
         )
       }
       return NextResponse.json({ success: true, notes: result.notes })
+    }
+
+    // Handle status change (e.g., moving cellar entry to TRIED) atomically
+    if (status !== undefined) {
+      const cellarEntry = await prisma.userWine.findFirst({
+        where: {
+          userId: session.user.id,
+          wineId,
+          inCellar: true,
+        },
+      })
+
+      if (!cellarEntry) {
+        return NextResponse.json(
+          { error: 'Cellar entry not found' },
+          { status: 404 }
+        )
+      }
+
+      const updated = await prisma.userWine.update({
+        where: { id: cellarEntry.id },
+        data: {
+          status,
+          ...(typeof inCellar === 'boolean' && { inCellar }),
+          ...(typeof quantity === 'number' && { quantity }),
+        },
+      })
+
+      return NextResponse.json({ success: true, userWine: updated })
     }
 
     // Handle quantity updates

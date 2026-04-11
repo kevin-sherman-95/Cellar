@@ -369,35 +369,39 @@ export async function getUserWinesWithReviews(userId: string, status?: string) {
     orderBy: { addedAt: 'desc' }
   })
 
-  // For each user wine, get their review if it exists and calculate average rating
-  const userWinesWithReviews = await Promise.all(
-    userWines.map(async (userWine) => {
-      const userReview = await prisma.review.findFirst({
+  const wineIds = Array.from(new Set(userWines.map(userWine => userWine.wineId)))
+  const userReviews = wineIds.length > 0
+    ? await prisma.review.findMany({
         where: {
           userId,
-          wineId: userWine.wineId
+          wineId: { in: wineIds }
         }
       })
+    : []
 
-      // Calculate average rating for the wine
-      const averageRating = userWine.wine.reviews.length > 0 
-        ? userWine.wine.reviews.reduce((acc, review) => acc + review.rating, 0) / userWine.wine.reviews.length
-        : 0
+  const reviewByWineId = new Map(userReviews.map(review => [review.wineId, review]))
 
-      return {
-        ...userWine,
-        userReview,
-        wine: {
-          ...userWine.wine,
-          averageRating,
-          _count: {
-            reviews: userWine.wine._count.reviews,
-            userWines: (userWine.wine._count as any).userWines ?? 0
-          }
+  const userWinesWithReviews = userWines.map((userWine) => {
+    const userReview = reviewByWineId.get(userWine.wineId) ?? null
+
+    // Calculate average rating for the wine
+    const averageRating = userWine.wine.reviews.length > 0
+      ? userWine.wine.reviews.reduce((acc, review) => acc + review.rating, 0) / userWine.wine.reviews.length
+      : 0
+
+    return {
+      ...userWine,
+      userReview,
+      wine: {
+        ...userWine.wine,
+        averageRating,
+        _count: {
+          reviews: userWine.wine._count.reviews,
+          userWines: (userWine.wine._count as any).userWines ?? 0
         }
       }
-    })
-  )
+    }
+  })
 
   return userWinesWithReviews
 }
