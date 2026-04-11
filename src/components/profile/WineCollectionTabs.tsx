@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo, useTransition } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 // UserWineStatus values as strings
@@ -26,7 +26,20 @@ interface WineCollectionTabsProps {
 
 export default function WineCollectionTabs({ userWines: initialUserWines, isOwnProfile = false, onWinesChange, defaultTab, defaultTabKey, defaultVarietal, defaultVarietalKey, searchQuery = '' }: WineCollectionTabsProps) {
   const { data: session } = useSession()
-  const [activeTab, setActiveTab] = useState<string>(defaultTab || 'MY_CELLAR')
+  const [isPending, startTransition] = useTransition()
+  const [activeTab, setActiveTabRaw] = useState<string>(defaultTab || 'MY_CELLAR')
+  const setActiveTab = useCallback((tab: string) => {
+    startTransition(() => {
+      setActiveTabRaw(tab)
+      setFilterVarietal(null)
+      setFilterWineType(null)
+      setFilterRegion(null)
+      setFilterVineyard(null)
+      setFilterSubmenu(null)
+      setSortDropdownOpen(false)
+      setFilterDropdownOpen(false)
+    })
+  }, [])
   const [notesModalWineId, setNotesModalWineId] = useState<string | null>(null)
   const [notesPopoverPos, setNotesPopoverPos] = useState<{ top: number; left: number } | null>(null)
   const [editingNotesText, setEditingNotesText] = useState<string>('')
@@ -87,7 +100,6 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
   const [filterRegion, setFilterRegion] = useState<string | null>(null)
   const [filterVineyard, setFilterVineyard] = useState<string | null>(null)
   const [filterSubmenu, setFilterSubmenu] = useState<'varietal' | 'region' | 'vineyard' | null>(null)
-  const [wineImages, setWineImages] = useState<Record<string, string>>({})
   const [addingToTriedWineId, setAddingToTriedWineId] = useState<string | null>(null)
   const [editingDateId, setEditingDateId] = useState<string | null>(null)
   const [pendingChanges, setPendingChanges] = useState<Record<string, { rating?: number; date?: string }>>({})
@@ -151,7 +163,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     }
   }
 
-  const handleRatingChange = async (wineId: string, rating: number) => {
+  const handleRatingChange = useCallback(async (wineId: string, rating: number) => {
     if (!session?.user?.id) return
 
     console.log('Rating wine:', wineId, 'with rating:', rating)
@@ -198,7 +210,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
         return newState
       })
     }
-  }
+  }, [session?.user?.id])
 
   const handleAddToTried = async (wineId: string) => {
     if (!session?.user?.id) return
@@ -670,56 +682,9 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     return localUserWines.filter(wine => wine.status === status).length
   }
 
-  // Close dropdowns and reset filters when tab changes
-  useEffect(() => {
-    setSortDropdownOpen(false)
-    setFilterDropdownOpen(false)
-    setFilterVarietal(null)
-    setFilterWineType(null)
-    setFilterRegion(null)
-    setFilterVineyard(null)
-    setFilterSubmenu(null)
-  }, [activeTab])
+  // Filter resets are now handled inside setActiveTab to avoid a second render pass
 
-  const fetchedImageIdsRef = useRef<Set<string>>(new Set())
-
-  // Stable list of wine IDs that need images (only changes when the actual wine list changes)
-  const wineIdsNeedingImages = useMemo(() => {
-    return localUserWines
-      .filter(uw => !uw.wine.image)
-      .map(uw => uw.wine.id)
-  }, [localUserWines])
-
-  useEffect(() => {
-    const idsToFetch = wineIdsNeedingImages.filter(
-      id => !wineImages[id] && !fetchedImageIdsRef.current.has(id)
-    ).slice(0, 10)
-
-    if (idsToFetch.length === 0) return
-
-    idsToFetch.forEach(id => fetchedImageIdsRef.current.add(id))
-
-    Promise.all(
-      idsToFetch.map(async (wineId) => {
-        try {
-          const response = await fetch(`/api/wines/${wineId}/image`)
-          if (response.ok) {
-            const data = await response.json()
-            if (data.image) return { id: wineId, image: data.image as string }
-          }
-        } catch { /* skip failed fetches */ }
-        return null
-      })
-    ).then(results => {
-      const batch: Record<string, string> = {}
-      for (const r of results) {
-        if (r) batch[r.id] = r.image
-      }
-      if (Object.keys(batch).length > 0) {
-        setWineImages(prev => ({ ...prev, ...batch }))
-      }
-    })
-  }, [wineIdsNeedingImages, wineImages])
+  // Image fetching is handled by individual WineCard components
 
   const sortOptions: { value: string; altValue: string | null; label: string; dirLabel: string; altDirLabel: string }[] = [
     { value: 'dateAdded', altValue: 'dateAddedAsc', label: 'Date Added', dirLabel: 'Newest', altDirLabel: 'Oldest' },
@@ -1162,7 +1127,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
       </div>
 
       {/* Tab Content */}
-      <div>
+      <div className={isPending ? 'opacity-60 transition-opacity duration-150' : 'transition-opacity duration-150'}>
         <div className="mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
             <div>

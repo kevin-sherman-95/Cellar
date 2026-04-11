@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -23,7 +23,7 @@ interface WineCardProps {
   addedAt?: Date | string
 }
 
-export default function WineCard({ 
+function WineCard({ 
   wine, 
   showAddToCollection = true, 
   onAddSuccess,
@@ -462,3 +462,5 @@ export default function WineCard({
     </div>
   )
 }
+
+export default memo(WineCard)
