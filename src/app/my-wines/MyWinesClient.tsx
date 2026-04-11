@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import WineCollectionTabs from '@/components/profile/WineCollectionTabs'
 import AddWineModal from '@/components/wine/AddWineModal'
 import { UserWineWithDetails, UserWineWithReview } from '@/lib/types'
-import Link from 'next/link'
+
 import { useRouter } from 'next/navigation'
 
 // UserWineStatus values as strings
@@ -22,6 +22,9 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
   const [isAddWineModalOpen, setIsAddWineModalOpen] = useState(false)
   const [selectedTab, setSelectedTab] = useState<{ tab: string; key: number } | undefined>(undefined)
   const [selectedVarietal, setSelectedVarietal] = useState<{ varietal: string | null; key: number } | undefined>(undefined)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   const tabsRef = useRef<HTMLDivElement>(null)
 
   const scrollToTabs = (tab: string) => {
@@ -133,19 +136,19 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
         
         <div className="grid grid-cols-2 gap-4 mb-6">
           <button
-            onClick={() => scrollToTabs('TRIED')}
-            className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center cursor-pointer hover:ring-2 hover:ring-green-400 dark:hover:ring-green-500 transition-all"
-          >
-            <div className="text-2xl font-bold text-green-700 dark:text-green-400">{stats.tried}</div>
-            <div className="text-sm text-green-600 dark:text-green-300">Tried</div>
-          </button>
-          
-          <button
             onClick={() => scrollToTabs('MY_CELLAR')}
             className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg text-center cursor-pointer hover:ring-2 hover:ring-purple-400 dark:hover:ring-purple-500 transition-all"
           >
             <div className="text-2xl font-bold text-purple-700 dark:text-purple-400">{stats.inCellar}</div>
             <div className="text-sm text-purple-600 dark:text-purple-300">In Cellar</div>
+          </button>
+
+          <button
+            onClick={() => scrollToTabs('TRIED')}
+            className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg text-center cursor-pointer hover:ring-2 hover:ring-green-400 dark:hover:ring-green-500 transition-all"
+          >
+            <div className="text-2xl font-bold text-green-700 dark:text-green-400">{stats.tried}</div>
+            <div className="text-sm text-green-600 dark:text-green-300">Tried</div>
           </button>
         </div>
 
@@ -201,18 +204,49 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
             <span>Add Wine</span>
           </button>
           
-          <Link
-            href="/wines"
+          <button
+            onClick={() => {
+              setSearchOpen(prev => !prev)
+              if (!searchOpen) {
+                setTimeout(() => searchInputRef.current?.focus(), 50)
+              } else {
+                setSearchQuery('')
+              }
+            }}
             className="flex items-center space-x-2 border border-wine-600 dark:border-wine-400 text-wine-600 dark:text-wine-400 hover:bg-wine-50 dark:hover:bg-wine-900/30 px-4 py-2 rounded-md font-medium transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <span>Find Wines</span>
-          </Link>
-          
-          {/* Removed Export Collection and Share Collection buttons per design update */}
+            <span>Search Collection</span>
+          </button>
         </div>
+
+        {searchOpen && (
+          <div className="mt-4 relative">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cellar-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search by name, vineyard, varietal, region..."
+              className="w-full pl-9 pr-9 py-2 border border-cellar-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-cellar-900 dark:text-gray-100 placeholder-cellar-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-wine-400 dark:focus:ring-wine-500 transition-all"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-cellar-400 dark:text-gray-500 hover:text-cellar-600 dark:hover:text-gray-300"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Wine Collection Tabs */}
@@ -224,6 +258,7 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
           defaultTab={selectedTab?.tab}
           defaultTabKey={selectedTab?.key}
           defaultVarietal={selectedVarietal?.varietal}
+          searchQuery={searchQuery}
           defaultVarietalKey={selectedVarietal?.key}
         />
       </div>
