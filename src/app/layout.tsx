@@ -8,8 +8,8 @@ import BrowseDropdown from '@/components/navigation/BrowseDropdown'
 import SearchBar from '@/components/navigation/SearchBar'
 
 export const metadata: Metadata = {
-  title: 'Cellar - Your Personal Wine Sanctuary | Wine Social Platform',
-  description: 'Cellar - The sophisticated wine social platform. Discover exceptional wines, share tasting experiences, and connect with fellow connoisseurs.',
+  title: 'Cellar - Where Wine Goes to Get Judged | Wine Social Platform',
+  description: 'Cellar - The wine app for people who drink too much and remember too little. Log your bottles, roast your friends\' taste, and pretend you know what tannins are.',
 }
 
 export default function RootLayout({
@@ -83,7 +83,7 @@ export default function RootLayout({
                     />
                     <h3 className="text-2xl font-serif text-amber-200 dark:text-amber-300">Cellar</h3>
                   </div>
-                  <p className="text-gray-200 dark:text-gray-300 text-lg">Your Personal Wine Sanctuary</p>
+                  <p className="text-gray-200 dark:text-gray-300 text-lg">Drink. Judge. Regret. Repeat.</p>
                   <p className="text-sm text-gray-300 dark:text-gray-400 mt-4">© 2024 Anysphere Inc. All rights reserved.</p>
                 </div>
               </div>
