@@ -123,7 +123,7 @@ export default function SearchBar() {
             if (results.length > 0) setIsOpen(true)
           }}
           placeholder="Search wines..."
-          className="w-72 lg:w-96 pl-9 pr-3 py-1.5 text-sm bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-300/50 focus:border-transparent transition-all"
+          className="w-full pl-9 pr-3 py-1.5 text-sm bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-300/50 focus:border-transparent transition-all"
           autoComplete="off"
           role="combobox"
           aria-expanded={isOpen}
