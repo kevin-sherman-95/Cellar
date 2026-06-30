@@ -47,12 +47,20 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { wineData, status, addToCellar, dateAdded } = body
+    const { wineData, status, addToCellar, dateAdded, quantity = 1 } = body
     const addedAt = dateAdded ? new Date(dateAdded) : undefined
+    const cellarQuantity = Number(quantity)
 
     if (!wineData || !status) {
       return NextResponse.json(
         { error: 'Wine data and status are required' },
+        { status: 400 }
+      )
+    }
+
+    if (addToCellar && (!Number.isInteger(cellarQuantity) || cellarQuantity < 1 || cellarQuantity > 99)) {
+      return NextResponse.json(
+        { error: 'Quantity must be a whole number between 1 and 99' },
         { status: 400 }
       )
     }
@@ -97,10 +105,10 @@ export async function POST(request: NextRequest) {
     // Add wine to user's collection or cellar
     let cellarResult = null
     if (addToCellar) {
-      // Add to cellar with quantity of 1 (will increment if already in cellar)
+      // Add the selected quantity to the cellar (incrementing an existing entry).
       console.log('Adding wine to cellar:', { userId: session.user.id, wineId: wine.id })
       try {
-        cellarResult = await addWineToCellar(session.user.id, wine.id, 1, addedAt)
+        cellarResult = await addWineToCellar(session.user.id, wine.id, cellarQuantity, addedAt)
         console.log('Successfully added wine to cellar:', { 
           userWineId: cellarResult.id, 
           inCellar: cellarResult.inCellar, 
@@ -258,7 +266,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { wineId, inCellar, quantity, notes, status, userWineId, addedAt } = body
+    const { wineId, inCellar, quantity, notes, price, status, userWineId, addedAt } = body
 
     // Handle direct entry update by userWineId (e.g. editing date tried)
     if (userWineId && addedAt !== undefined) {
@@ -271,6 +279,44 @@ export async function PATCH(request: NextRequest) {
         data: { addedAt: new Date(addedAt) },
       })
       return NextResponse.json({ success: true, userWine: updated })
+    }
+
+    // Handle purchase price updates for a specific cellar entry
+    if (price !== undefined) {
+      if (!userWineId) {
+        return NextResponse.json(
+          { error: 'User wine entry ID is required' },
+          { status: 400 }
+        )
+      }
+
+      const numericPrice = price === null ? null : Number(price)
+      if (
+        numericPrice !== null
+        && (!Number.isFinite(numericPrice) || numericPrice < 0 || numericPrice > 1000000)
+      ) {
+        return NextResponse.json(
+          { error: 'Price must be between 0 and 1,000,000' },
+          { status: 400 }
+        )
+      }
+
+      const entry = await prisma.userWine.findUnique({ where: { id: userWineId } })
+      if (!entry || entry.userId !== session.user.id || !entry.inCellar) {
+        return NextResponse.json({ error: 'Cellar entry not found' }, { status: 404 })
+      }
+
+      const updated = await prisma.userWine.update({
+        where: { id: userWineId },
+        data: {
+          priceInCents: numericPrice === null ? null : Math.round(numericPrice * 100),
+        },
+      })
+
+      return NextResponse.json({
+        success: true,
+        priceInCents: updated.priceInCents,
+      })
     }
 
     if (!wineId) {

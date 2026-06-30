@@ -11,6 +11,18 @@ interface AddWineModalProps {
   onSuccess?: (newUserWine?: any) => void
 }
 
+interface WineSuggestion {
+  id: string
+  name: string
+  vineyard: string
+  vintage: number | null
+  varietal: string
+  region: string
+  country: string
+}
+
+type AutocompleteField = 'name' | 'winery'
+
 const WINE_VARIETALS = [
   'Cabernet Sauvignon', 'Pinot Noir', 'Merlot', 'Chardonnay', 'Sauvignon Blanc',
   'Malbec', 'Syrah', 'Shiraz', 'Zinfandel', 'Riesling', 'Tempranillo',
@@ -32,6 +44,10 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [mounted, setMounted] = useState(false)
+  const [activeAutocomplete, setActiveAutocomplete] = useState<AutocompleteField | null>(null)
+  const [suggestions, setSuggestions] = useState<WineSuggestion[]>([])
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+  const [highlightedSuggestion, setHighlightedSuggestion] = useState(-1)
   
   const [formData, setFormData] = useState({
     name: '',
@@ -41,6 +57,7 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
     year: '',
     region: '',
     country: 'United States',
+    quantity: '1',
     status: 'CELLAR' as 'WANT_TO_TRY' | 'TRIED' | 'CELLAR',
     dateAdded: new Date().toISOString().split('T')[0]
   })
@@ -48,6 +65,49 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (!isOpen || !activeAutocomplete) {
+      setSuggestions([])
+      return
+    }
+
+    const query = (activeAutocomplete === 'name' ? formData.name : formData.winery).trim()
+    if (!query) {
+      setSuggestions([])
+      setIsLoadingSuggestions(false)
+      return
+    }
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(async () => {
+      setIsLoadingSuggestions(true)
+
+      try {
+        const response = await fetch(
+          `/api/wines/autocomplete?q=${encodeURIComponent(query)}&field=${activeAutocomplete}`,
+          { signal: controller.signal }
+        )
+
+        if (!response.ok) throw new Error('Failed to load wine suggestions')
+
+        const data = await response.json()
+        setSuggestions(data.wines || [])
+        setHighlightedSuggestion(-1)
+      } catch (suggestionError) {
+        if ((suggestionError as Error).name !== 'AbortError') {
+          setSuggestions([])
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsLoadingSuggestions(false)
+      }
+    }, 250)
+
+    return () => {
+      clearTimeout(timeoutId)
+      controller.abort()
+    }
+  }, [activeAutocomplete, formData.name, formData.winery, isOpen])
 
   if (!isOpen || !mounted) return null
 
@@ -103,6 +163,7 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
           wineData,
           status,
           addToCellar,
+          quantity: formData.status === 'CELLAR' ? parseInt(formData.quantity, 10) : undefined,
           dateAdded: formData.dateAdded
         }),
       })
@@ -124,6 +185,7 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
         year: '',
         region: '',
         country: 'United States',
+        quantity: '1',
         status: 'CELLAR',
         dateAdded: new Date().toISOString().split('T')[0]
       })
@@ -147,6 +209,101 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }))
+
+    if (name === 'name' || name === 'winery') {
+      setActiveAutocomplete(name)
+      setHighlightedSuggestion(-1)
+    }
+  }
+
+  const handleSelectSuggestion = (wine: WineSuggestion) => {
+    const isKnownVarietal = WINE_VARIETALS.includes(wine.varietal)
+
+    setFormData(prev => ({
+      ...prev,
+      name: wine.name,
+      winery: wine.vineyard,
+      varietal: isKnownVarietal ? wine.varietal : 'Other',
+      customVarietal: isKnownVarietal ? '' : wine.varietal,
+      year: wine.vintage?.toString() || '',
+      region: wine.region || '',
+      country: wine.country || 'United States'
+    }))
+    setActiveAutocomplete(null)
+    setSuggestions([])
+    setHighlightedSuggestion(-1)
+  }
+
+  const handleAutocompleteKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+    field: AutocompleteField
+  ) => {
+    if (activeAutocomplete !== field || suggestions.length === 0) {
+      if (event.key === 'ArrowDown') setActiveAutocomplete(field)
+      return
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setHighlightedSuggestion(current => current < suggestions.length - 1 ? current + 1 : 0)
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setHighlightedSuggestion(current => current > 0 ? current - 1 : suggestions.length - 1)
+    } else if (event.key === 'Enter' && highlightedSuggestion >= 0) {
+      event.preventDefault()
+      handleSelectSuggestion(suggestions[highlightedSuggestion])
+    } else if (event.key === 'Escape') {
+      setActiveAutocomplete(null)
+      setSuggestions([])
+    }
+  }
+
+  const renderSuggestions = (field: AutocompleteField) => {
+    if (activeAutocomplete !== field) return null
+
+    if (isLoadingSuggestions) {
+      return (
+        <div className="absolute right-3 top-9 z-20 h-4 w-4 animate-spin rounded-full border-2 border-cellar-300 border-t-wine-600" />
+      )
+    }
+
+    if (suggestions.length === 0) return null
+
+    return (
+      <ul
+        id={`${field}-wine-suggestions`}
+        role="listbox"
+        className="absolute left-0 right-0 top-full z-30 mt-1 max-h-64 overflow-y-auto rounded-md border border-cellar-200 bg-white py-1 shadow-xl"
+      >
+        {suggestions.map((wine, index) => (
+          <li
+            key={wine.id}
+            id={`${field}-wine-suggestion-${index}`}
+            role="option"
+            aria-selected={highlightedSuggestion === index}
+          >
+            <button
+              type="button"
+              className={`w-full px-3 py-2 text-left transition-colors ${
+                highlightedSuggestion === index ? 'bg-wine-50' : 'hover:bg-cellar-50'
+              }`}
+              onMouseDown={event => event.preventDefault()}
+              onMouseEnter={() => setHighlightedSuggestion(index)}
+              onClick={() => handleSelectSuggestion(wine)}
+            >
+              <span className="block text-sm font-medium text-cellar-900">
+                {field === 'winery' ? wine.vineyard : wine.name}
+              </span>
+              <span className="block truncate text-xs text-cellar-500">
+                {field === 'winery' ? wine.name : wine.vineyard}
+                {wine.vintage && ` · ${wine.vintage}`}
+                {wine.varietal && ` · ${wine.varietal}`}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    )
   }
 
   const modalContent = (
@@ -186,7 +343,7 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
             )}
 
             {/* Wine Name */}
-            <div>
+            <div className="relative">
               <label htmlFor="name" className="block text-sm font-medium text-cellar-700 mb-1">
                 Wine Name <span className="text-red-500">*</span>
               </label>
@@ -196,15 +353,28 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
+                onFocus={() => setActiveAutocomplete('name')}
+                onBlur={() => setTimeout(() => setActiveAutocomplete(null), 100)}
+                onKeyDown={event => handleAutocompleteKeyDown(event, 'name')}
                 required
                 className="w-full px-3 py-2 border border-cellar-300 rounded-md focus:outline-none focus:ring-wine-500 focus:border-wine-500"
                 placeholder="e.g., Cabernet Sauvignon Reserve"
                 disabled={isSubmitting}
+                autoComplete="off"
+                role="combobox"
+                aria-expanded={activeAutocomplete === 'name' && suggestions.length > 0}
+                aria-controls="name-wine-suggestions"
+                aria-activedescendant={
+                  activeAutocomplete === 'name' && highlightedSuggestion >= 0
+                    ? `name-wine-suggestion-${highlightedSuggestion}`
+                    : undefined
+                }
               />
+              {renderSuggestions('name')}
             </div>
 
             {/* Winery */}
-            <div>
+            <div className="relative">
               <label htmlFor="winery" className="block text-sm font-medium text-cellar-700 mb-1">
                 Winery <span className="text-red-500">*</span>
               </label>
@@ -214,11 +384,24 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
                 name="winery"
                 value={formData.winery}
                 onChange={handleInputChange}
+                onFocus={() => setActiveAutocomplete('winery')}
+                onBlur={() => setTimeout(() => setActiveAutocomplete(null), 100)}
+                onKeyDown={event => handleAutocompleteKeyDown(event, 'winery')}
                 required
                 className="w-full px-3 py-2 border border-cellar-300 rounded-md focus:outline-none focus:ring-wine-500 focus:border-wine-500"
                 placeholder="e.g., Napa Valley Winery"
                 disabled={isSubmitting}
+                autoComplete="off"
+                role="combobox"
+                aria-expanded={activeAutocomplete === 'winery' && suggestions.length > 0}
+                aria-controls="winery-wine-suggestions"
+                aria-activedescendant={
+                  activeAutocomplete === 'winery' && highlightedSuggestion >= 0
+                    ? `winery-wine-suggestion-${highlightedSuggestion}`
+                    : undefined
+                }
               />
+              {renderSuggestions('winery')}
             </div>
 
             {/* Varietal */}
@@ -302,11 +485,35 @@ export default function AddWineModal({ isOpen, onClose, onSuccess }: AddWineModa
                 className="w-full px-3 py-2 border border-cellar-300 rounded-md focus:outline-none focus:ring-wine-500 focus:border-wine-500"
                 disabled={isSubmitting}
               >
+                {!COUNTRIES.includes(formData.country) && (
+                  <option value={formData.country}>{formData.country}</option>
+                )}
                 {COUNTRIES.map(country => (
                   <option key={country} value={country}>{country}</option>
                 ))}
               </select>
             </div>
+
+            {/* Quantity */}
+            {formData.status === 'CELLAR' && (
+              <div>
+                <label htmlFor="quantity" className="block text-sm font-medium text-cellar-700 mb-1">
+                  Quantity
+                </label>
+                <input
+                  type="number"
+                  id="quantity"
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleInputChange}
+                  min="1"
+                  max="99"
+                  required
+                  className="w-full px-3 py-2 border border-cellar-300 rounded-md focus:outline-none focus:ring-wine-500 focus:border-wine-500"
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
 
             {/* Date Added */}
             <div>

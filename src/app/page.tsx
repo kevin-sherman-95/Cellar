@@ -1,40 +1,28 @@
 import Link from 'next/link'
+import { getServerSession } from 'next-auth/next'
 import { getRandomFeaturedWines } from '@/lib/wine-actions'
 import { getWineBottleImageUrl } from '@/lib/wine-image-utils'
-import { resolveAndCacheWineImage } from '@/lib/wine-image-server'
+import { authOptions } from '@/lib/auth'
+import { getCellarDashboardData } from '@/lib/actions'
+import CellarDashboard from '@/components/home/CellarDashboard'
 
 // Force dynamic rendering to avoid database access during build
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
+  const session = await getServerSession(authOptions)
 
-  const featuredWines = await getRandomFeaturedWines(3)
-
-  const hasRealImage = (img: string | null | undefined) =>
-    !!img && !img.includes('fallback')
-
-  // Resolve and cache images for featured wines missing a real one
-  const winesToResolve = featuredWines.filter((w: any) => w.id && !hasRealImage(w.image))
-  if (winesToResolve.length > 0) {
-    await Promise.all(
-      winesToResolve.map((w: any) =>
-        resolveAndCacheWineImage({ ...w, image: null }).catch(() => {})
-      )
+  if (session?.user?.id) {
+    const dashboard = await getCellarDashboardData(session.user.id)
+    return (
+      <CellarDashboard
+        {...dashboard}
+        userName={session.user.name}
+      />
     )
   }
 
-  // Re-read image URLs for wines that were just resolved
-  const { prisma } = await import('@/lib/db')
-  const resolvedWines = await Promise.all(
-    featuredWines.map(async (w: any) => {
-      if (hasRealImage(w.image) || !w.id) return w
-      const updated = await prisma.wine.findUnique({
-        where: { id: w.id },
-        select: { image: true }
-      })
-      return { ...w, image: updated?.image ?? null }
-    })
-  )
+  const featuredWines = await getRandomFeaturedWines(3)
 
   const fallbackWines = [
     { name: 'Château Margaux 2015', region: 'Bordeaux, France', vintage: 2015, averageRating: 4.8 },
@@ -42,7 +30,7 @@ export default async function Home() {
     { name: 'Opus One 2018', region: 'Napa Valley, USA', vintage: 2018, averageRating: 4.6 }
   ]
 
-  const displayWines = (resolvedWines.length > 0 ? resolvedWines : fallbackWines).map((wine: any) => ({
+  const displayWines = (featuredWines.length > 0 ? featuredWines : fallbackWines).map((wine: any) => ({
     id: wine.id as string | undefined,
     name: wine.name as string,
     vineyard: (wine.vineyard as string | undefined) ?? undefined,

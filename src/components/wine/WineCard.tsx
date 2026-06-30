@@ -21,6 +21,7 @@ interface WineCardProps {
   testLayout?: boolean
   alignRatingBottom?: boolean
   addedAt?: Date | string
+  onAddedAtChange?: (date: string) => void | Promise<void>
 }
 
 function WineCard({ 
@@ -35,7 +36,8 @@ function WineCard({
   isOwnProfile = false,
   testLayout = false,
   alignRatingBottom = false,
-  addedAt
+  addedAt,
+  onAddedAtChange
 }: WineCardProps) {
   const { data: session } = useSession()
   const router = useRouter()
@@ -45,6 +47,7 @@ function WineCard({
   const [addedToWantToTry, setAddedToWantToTry] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [wineImage, setWineImage] = useState<string | null>(wine.image || null)
+  const [isEditingAddedAt, setIsEditingAddedAt] = useState(false)
   const displayRating = wine.averageRating || 0
   const filledStars = Math.floor(displayRating)
   // Check for half star - round to nearest 0.5 to handle floating point precision
@@ -274,9 +277,38 @@ function WineCard({
         </div>
 
         {addedAt && (
-          <p className="text-cellar-400 dark:text-gray-500 text-xs mb-3">
-            Added {new Date(addedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-          </p>
+          isEditingAddedAt && onAddedAtChange ? (
+            <input
+              type="date"
+              autoFocus
+              defaultValue={new Date(addedAt).toISOString().slice(0, 10)}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={async event => {
+                if (!event.target.value) return
+                setIsEditingAddedAt(false)
+                await onAddedAtChange(event.target.value)
+              }}
+              onBlur={() => setIsEditingAddedAt(false)}
+              onKeyDown={event => {
+                if (event.key === 'Escape') setIsEditingAddedAt(false)
+              }}
+              className="mb-3 w-full rounded border border-cellar-300 bg-white px-2 py-1 text-xs text-cellar-700 focus:border-wine-500 focus:outline-none focus:ring-1 focus:ring-wine-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+              aria-label="Date added"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => onAddedAtChange && setIsEditingAddedAt(true)}
+              className={`mb-3 text-left text-xs text-cellar-400 dark:text-gray-500 ${
+                onAddedAtChange
+                  ? 'cursor-pointer hover:text-wine-600 hover:underline dark:hover:text-wine-400'
+                  : ''
+              }`}
+              title={onAddedAtChange ? 'Click to edit date added' : undefined}
+            >
+              Added {new Date(addedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </button>
+          )
         )}
         
         {/* Rating and Quantity (interactive when props provided, otherwise show average rating) */}

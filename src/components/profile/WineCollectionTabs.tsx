@@ -9,6 +9,7 @@ const USER_WINE_STATUS = {
   TRIED: 'TRIED'
 }
 import WineCard from '@/components/wine/WineCard'
+import BottlePriceInput from '@/components/wine/BottlePriceInput'
 import StarRating from '@/components/reviews/StarRating'
 import { UserWineWithDetails, UserWineWithReview } from '@/lib/types'
 import { getWineBottleImageUrl } from '@/lib/wine-image-utils'
@@ -1436,6 +1437,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                   isOwnProfile={activeTab === 'MY_CELLAR' && isOwnProfile}
                   testLayout={activeTab === 'MY_CELLAR' && isOwnProfile}
                   addedAt={userWine.addedAt}
+                  onAddedAtChange={isOwnProfile ? (date: string) => handleDateChange(userWine.id, date) : undefined}
                   alignRatingBottom={activeTab === 'MY_CELLAR' && isOwnProfile}
                 />
                 
@@ -1462,6 +1464,21 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
                 {/* Action Buttons for My Cellar (only for own profile) */}
                 {activeTab === 'MY_CELLAR' && isOwnProfile && (
                   <div className="mt-3 space-y-3">
+                    {/* Bottle Price */}
+                    <div className="pb-3 border-b border-cellar-200 dark:border-gray-600">
+                      <BottlePriceInput
+                        userWineId={userWine.id}
+                        priceInCents={userWine.priceInCents}
+                        onSaved={(priceInCents) => {
+                          setLocalUserWines(prev => prev.map(entry =>
+                            entry.id === userWine.id
+                              ? { ...entry, priceInCents }
+                              : entry
+                          ))
+                        }}
+                      />
+                    </div>
+
                     {/* Notes Section */}
                     <div className="pb-3 border-b border-cellar-200 dark:border-gray-600">
                       <div className="flex items-center justify-between mb-2">

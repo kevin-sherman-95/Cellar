@@ -1,22 +1,26 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getServerSession } from 'next-auth/next'
 import './globals.css'
 import SessionProvider from '@/components/providers/SessionProvider'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import AuthButton from '@/components/navigation/AuthButton'
 import BrowseDropdown from '@/components/navigation/BrowseDropdown'
 import SearchBar from '@/components/navigation/SearchBar'
+import { authOptions } from '@/lib/auth'
 
 export const metadata: Metadata = {
   title: 'Cellar - Where Wine Goes to Get Judged | Wine Social Platform',
   description: 'Cellar - The wine app for people who drink too much and remember too little. Log your bottles, roast your friends\' taste, and pretend you know what tannins are.',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const session = await getServerSession(authOptions)
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
@@ -24,7 +28,7 @@ export default function RootLayout({
           defaultTheme="dark"
           storageKey="cellar-theme"
         >
-          <SessionProvider>
+          <SessionProvider session={session}>
             <header className="sticky top-0 z-50 bg-gradient-to-r from-red-800 via-red-700 to-red-600 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 shadow-xl">
               <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
