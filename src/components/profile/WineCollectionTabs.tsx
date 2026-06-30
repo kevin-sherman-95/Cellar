@@ -665,6 +665,14 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
         case 'vineyard': return a.wine.vineyard.localeCompare(b.wine.vineyard)
         case 'region': return a.wine.region.localeCompare(b.wine.region)
         case 'quantity': return (b.quantity || 0) - (a.quantity || 0)
+        case 'cost':
+          if (a.priceInCents == null) return 1
+          if (b.priceInCents == null) return -1
+          return b.priceInCents - a.priceInCents
+        case 'costAsc':
+          if (a.priceInCents == null) return 1
+          if (b.priceInCents == null) return -1
+          return a.priceInCents - b.priceInCents
         case 'dateAddedAsc': return new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime()
         case 'dateAdded':
         default: return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime()
@@ -693,6 +701,7 @@ export default function WineCollectionTabs({ userWines: initialUserWines, isOwnP
     { value: 'vintage', altValue: 'vintageAsc', label: 'Vintage', dirLabel: 'Newest', altDirLabel: 'Oldest' },
     { value: 'rating', altValue: 'ratingAsc', label: 'Rating', dirLabel: 'Highest', altDirLabel: 'Lowest' },
     ...(activeTab === 'MY_CELLAR' ? [{ value: 'quantity', altValue: null as string | null, label: 'Quantity', dirLabel: 'Most', altDirLabel: '' }] : []),
+    ...(activeTab === 'MY_CELLAR' ? [{ value: 'cost', altValue: 'costAsc', label: 'Cost', dirLabel: 'Highest', altDirLabel: 'Lowest' }] : []),
   ]
 
   const isAltSort = (option: typeof sortOptions[number]) => {
