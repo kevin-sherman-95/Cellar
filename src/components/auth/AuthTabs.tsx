@@ -8,12 +8,16 @@ type Tab = 'signin' | 'signup'
 
 interface AuthTabsProps {
   defaultTab?: Tab
+  callbackUrl?: string
 }
 
-export default function AuthTabs({ defaultTab = 'signin' }: AuthTabsProps) {
+export default function AuthTabs({ defaultTab = 'signin', callbackUrl = '/' }: AuthTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab)
   const [providers, setProviders] = useState<any>(null)
   const router = useRouter()
+  const safeCallbackUrl = callbackUrl.startsWith('/') && !callbackUrl.startsWith('//')
+    ? callbackUrl
+    : '/'
 
   // Sign In state
   const [signInEmail, setSignInEmail] = useState('')
@@ -60,7 +64,8 @@ export default function AuthTabs({ defaultTab = 'signin' }: AuthTabsProps) {
         setSignInMessage('Invalid email or password. Please try again.')
       } else if (result?.ok) {
         setSignInMessage('Sign in successful! Redirecting...')
-        router.push('/')
+        router.push(safeCallbackUrl)
+        router.refresh()
       }
     } catch (error) {
       setSignInMessage('An error occurred. Please try again.')
@@ -111,7 +116,8 @@ export default function AuthTabs({ defaultTab = 'signin' }: AuthTabsProps) {
         })
 
         if (result?.ok) {
-          router.push('/')
+          router.push(safeCallbackUrl)
+          router.refresh()
         }
       } else {
         setSignUpMessage(data.error || 'An error occurred during registration.')
@@ -124,7 +130,7 @@ export default function AuthTabs({ defaultTab = 'signin' }: AuthTabsProps) {
   }
 
   const handleProviderSignIn = (provider: string) => {
-    signIn(provider, { callbackUrl: '/' })
+    signIn(provider, { callbackUrl: safeCallbackUrl })
   }
 
   return (

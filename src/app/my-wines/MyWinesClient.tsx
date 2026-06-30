@@ -4,14 +4,9 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import WineCollectionTabs from '@/components/profile/WineCollectionTabs'
 import AddWineModal from '@/components/wine/AddWineModal'
 import { UserWineWithDetails, UserWineWithReview } from '@/lib/types'
+import { calculateCollectionStats, getWineType } from '@/lib/collection-stats'
 
 import { useRouter } from 'next/navigation'
-
-// UserWineStatus values as strings
-const USER_WINE_STATUS = {
-  WANT_TO_TRY: 'WANT_TO_TRY',
-  TRIED: 'TRIED'
-}
 
 interface MyWinesClientProps {
   userWines?: (UserWineWithDetails | UserWineWithReview)[]
@@ -53,48 +48,7 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
     setLocalUserWines(updatedWines)
   }, [])
 
-  // Calculate statistics using the shared local state
-  const tried = localUserWines.filter(wine => wine.status === USER_WINE_STATUS.TRIED)
-  const inCellar = localUserWines.filter(wine => wine.inCellar === true)
-  
-  const totalBottles = inCellar.reduce((sum, wine) => sum + (wine.quantity || 0), 0)
-
-  const stats = {
-    tried: tried.length,
-    inCellar: totalBottles,
-  }
-
-  // Compute varietal breakdown across the entire collection (cellar bottles by quantity)
-  const varietalCounts = localUserWines.reduce<Record<string, number>>((acc, uw) => {
-    const varietal = uw.wine?.varietal
-    if (varietal) {
-      acc[varietal] = (acc[varietal] || 0) + (uw.inCellar ? (uw.quantity || 1) : 1)
-    }
-    return acc
-  }, {})
-
-  const sortedVarietals = Object.entries(varietalCounts)
-    .sort((a, b) => b[1] - a[1])
-
-  const getWineType = (varietal: string): 'red' | 'white' | 'other' => {
-    const v = varietal.toLowerCase()
-    const reds = [
-      'cabernet sauvignon', 'merlot', 'pinot noir', 'syrah', 'shiraz', 'zinfandel',
-      'sangiovese', 'tempranillo', 'malbec', 'cabernet franc', 'grenache', 'gamay',
-      'nebbiolo', 'barbera', 'dolcetto', 'carmenère', 'petit verdot', 'mourvèdre',
-      'carignan', 'cinsault', 'pinotage', 'tannat', 'chianti', 'red blend', 'red',
-    ]
-    const whites = [
-      'chardonnay', 'sauvignon blanc', 'pinot grigio', 'pinot gris', 'riesling',
-      'gewürztraminer', 'viognier', 'chenin blanc', 'semillon', 'muscat',
-      'albariño', 'verdejo', 'vermentino', 'grüner veltliner', 'torrontés',
-      'moscato', 'pinot blanc', 'müller-thurgau', 'trebbiano', 'garganega',
-      'prosecco', 'white blend', 'white',
-    ]
-    if (reds.some(r => v.includes(r))) return 'red'
-    if (whites.some(w => v.includes(w))) return 'white'
-    return 'other'
-  }
+  const stats = calculateCollectionStats(localUserWines)
 
   const handleWineAdded = (newUserWine?: any) => {
     // If we have the new wine data, add it immediately to local state
@@ -152,13 +106,13 @@ export default function MyWinesClient({ userWines = [] }: MyWinesClientProps) {
           </button>
         </div>
 
-        {sortedVarietals.length > 0 && (
+        {stats.varietalCounts.length > 0 && (
           <>
             <h3 className="text-sm font-semibold text-cellar-600 dark:text-gray-400 uppercase tracking-wide mb-3">
               Varietals
             </h3>
             <div className="flex flex-wrap gap-2">
-              {sortedVarietals.map(([varietal, count]) => {
+              {stats.varietalCounts.map(([varietal, count]) => {
                 const type = getWineType(varietal)
                 const isWhite = type === 'white'
                 return (

@@ -96,6 +96,7 @@ model UserWine {
   inCellar Boolean  @default(false) // Whether user currently owns this bottle
   quantity Int      @default(0)     // Number of bottles owned
   notes    String?                  // Personal cellar notes
+  priceInCents Int?                 // User's purchase price for one bottle
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   wine Wine @relation(fields: [wineId], references: [id], onDelete: Cascade)

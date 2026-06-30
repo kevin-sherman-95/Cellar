@@ -11,23 +11,30 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const query = searchParams.get('q') || ''
+    const query = (searchParams.get('q') || '').trim()
+    const field = searchParams.get('field')
 
     console.log('🔍 Autocomplete search for:', query)
 
-    if (!query || query.length < 2) {
+    if (!query) {
       return NextResponse.json({ wines: [] })
     }
 
     // Search local database with optimized query (case-insensitive)
     const wines = await prisma.wine.findMany({
       where: {
-        OR: [
-          { name: { contains: query, mode: 'insensitive' } },
-          { vineyard: { contains: query, mode: 'insensitive' } },
-          { varietal: { contains: query, mode: 'insensitive' } },
-          { region: { contains: query, mode: 'insensitive' } },
-        ]
+        ...(field === 'name'
+          ? { name: { contains: query, mode: 'insensitive' as const } }
+          : field === 'winery'
+            ? { vineyard: { contains: query, mode: 'insensitive' as const } }
+            : {
+                OR: [
+                  { name: { contains: query, mode: 'insensitive' as const } },
+                  { vineyard: { contains: query, mode: 'insensitive' as const } },
+                  { varietal: { contains: query, mode: 'insensitive' as const } },
+                  { region: { contains: query, mode: 'insensitive' as const } },
+                ]
+              })
       },
       select: {
         id: true,
@@ -36,15 +43,31 @@ export async function GET(request: NextRequest) {
         vintage: true,
         varietal: true,
         region: true,
+        country: true,
       },
-      take: 8,
-      orderBy: [
-        { name: 'asc' }
-      ]
+      take: 30,
+      orderBy: field === 'winery'
+        ? [{ vineyard: 'asc' }, { name: 'asc' }]
+        : [{ name: 'asc' }]
     })
 
-    console.log('✅ Autocomplete found', wines.length, 'wines:', wines.map(w => w.name).join(', '))
-    return NextResponse.json({ wines })
+    // Prefer prefix matches so a short query such as "J" surfaces "J. Lohr"
+    // before values that only contain the query later in their name.
+    const normalizedQuery = query.toLocaleLowerCase()
+    const rankedWines = wines
+      .sort((a, b) => {
+        const aValue = (field === 'winery' ? a.vineyard : a.name).toLocaleLowerCase()
+        const bValue = (field === 'winery' ? b.vineyard : b.name).toLocaleLowerCase()
+        const aStartsWith = aValue.startsWith(normalizedQuery)
+        const bStartsWith = bValue.startsWith(normalizedQuery)
+
+        if (aStartsWith !== bStartsWith) return aStartsWith ? -1 : 1
+        return aValue.localeCompare(bValue)
+      })
+      .slice(0, 8)
+
+    console.log('✅ Autocomplete found', rankedWines.length, 'wines:', rankedWines.map(w => w.name).join(', '))
+    return NextResponse.json({ wines: rankedWines })
   } catch (error) {
     console.error('Error in wine autocomplete API:', error)
     return NextResponse.json(

@@ -1,5 +1,6 @@
 import { prisma } from './db'
-import { WineFormData, ReviewFormData, UserProfileData, WineFilters } from './types'
+import { WineFormData, ReviewFormData, UserProfileData, WineFilters, UserWineWithDetails } from './types'
+import type { CollectionStats } from './collection-stats'
 import { findOrCreateWine } from './wine-actions'
 
 // UserWineStatus values (moved out of server actions file)
@@ -404,6 +405,85 @@ export async function getUserWinesWithReviews(userId: string, status?: string) {
   })
 
   return userWinesWithReviews
+}
+
+export type CellarDashboardData = {
+  stats: Pick<CollectionStats, 'inCellar' | 'tried'>
+  recentWines: UserWineWithDetails[]
+}
+
+export async function getCellarDashboardData(userId: string): Promise<CellarDashboardData> {
+  const [bottleAggregate, tried, recentEntries] = await Promise.all([
+    prisma.userWine.aggregate({
+      where: { userId, inCellar: true },
+      _sum: { quantity: true },
+    }),
+    prisma.userWine.count({
+      where: { userId, status: USER_WINE_STATUS.TRIED },
+    }),
+    prisma.userWine.findMany({
+      where: { userId, inCellar: true },
+      orderBy: { addedAt: 'desc' },
+      take: 3,
+      select: {
+        id: true,
+        userId: true,
+        wineId: true,
+        status: true,
+        addedAt: true,
+        inCellar: true,
+        quantity: true,
+        notes: true,
+        priceInCents: true,
+        wine: {
+          select: {
+            id: true,
+            name: true,
+            vineyard: true,
+            wineryId: true,
+            region: true,
+            country: true,
+            varietal: true,
+            vintage: true,
+            description: true,
+            alcoholContent: true,
+            image: true,
+            createdAt: true,
+            updatedAt: true,
+            reviews: {
+              select: { rating: true },
+            },
+            _count: {
+              select: { reviews: true, userWines: true },
+            },
+          },
+        },
+      },
+    }),
+  ])
+
+  const recentWines = recentEntries.map(({ wine, ...entry }) => {
+    const averageRating = wine.reviews.length
+      ? wine.reviews.reduce((sum, review) => sum + review.rating, 0) / wine.reviews.length
+      : 0
+    const { reviews, ...wineDetails } = wine
+
+    return {
+      ...entry,
+      wine: {
+        ...wineDetails,
+        averageRating,
+      },
+    }
+  })
+
+  return {
+    stats: {
+      inCellar: bottleAggregate._sum.quantity ?? 0,
+      tried,
+    },
+    recentWines,
+  }
 }
 
 // Review actions
