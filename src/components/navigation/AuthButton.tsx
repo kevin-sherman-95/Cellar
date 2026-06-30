@@ -101,7 +101,7 @@ export default function AuthButton() {
   return (
     <Link
       href="/auth/signin"
-      className="bg-cellar-600 hover:bg-cellar-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+      className="bg-cellar-600 hover:bg-cellar-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap shrink-0"
     >
       Sign In
     </Link>

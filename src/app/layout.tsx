@@ -50,13 +50,13 @@ export default function RootLayout({
                       My Cellar
                     </Link>
                     <BrowseDropdown />
-                    <div className="flex-1 max-w-md">
+                    <div className="flex-1 min-w-0 max-w-md">
                       <SearchBar />
                     </div>
                   </div>
                   
                   {/* Desktop Right Side */}
-                  <div className="hidden md:flex items-center space-x-4">
+                  <div className="hidden md:flex items-center space-x-4 shrink-0 ml-4">
                     <AuthButton />
                   </div>
                   
